@@ -22,7 +22,7 @@ library
   exposed-modules:
     Parser
   hs-source-dirs:
-    parser
+    src
   build-depends:
     base ^>=4.17.2.1
     , megaparsec
