@@ -1,9 +1,21 @@
 module Ast where
 
-data Type = Int | Float | Bool | Unit | Char
+data PrimType = Int | Float | Bool | Unit | Char
 
-data Bind = Bind { name :: Text }
+data Type = FuncType { arg :: Type, rtn :: Type }
+          | ListType Type
+          | TupleType [Type]
+          | StructType [(Text, Type)]
+          | SetType Type
+          | ConstrType { name :: Text, args :: [Type] }
+          | TypeRef { name :: Text, args :: [Type] }
+          | TypeVar Text
+          | PrimType
 
-data TypeDef = TypeDef { name :: Text, value :: Type }
+data Defn = Defn { name :: Text }
 
-data Program = Program [Bind] [TypeDef] [TypeSig] deriving (Eq, Show)
+data TypeDefn = TypeDefn { name :: Text, value :: Type }
+
+data TypeSig = TypeSig Text Type
+
+data Program = Program [Defn] [TypeDef] [TypeSig] deriving (Eq, Show)
