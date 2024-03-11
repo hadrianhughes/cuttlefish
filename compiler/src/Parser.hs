@@ -4,8 +4,9 @@ import           Data.Char
 import           Text.Megaparsec
 import           Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
-import           Data.Text (Text)
+import           Data.Text ( Text )
 import qualified Data.Text                  as T
+import           Control.Monad ( void )
 import           Data.Void
 import           Data.String.Conversions
 
@@ -36,6 +37,9 @@ squotes = between (symbol "'") (symbol "'")
 
 dquotes :: Parser a -> Parser a
 dquotes = between (symbol "\"") (symbol "\"")
+
+comma :: Parser ()
+comma = void $ symbol ","
 
 rword :: Text -> Parser ()
 rword w = (lexeme . try) (string w *> notFollowedBy alphaNumChar)
