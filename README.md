@@ -4,5 +4,5 @@ The language will not necessarily be called Cuttlefish--I just needed a repo nam
 
 ## TODO list
 
-- [ ] Follow a Megaparsec tutorial
-- [ ] Make a start on the compiler (specifically the parser)
+- [ ] Make a list of the possible "type expressions"
+- [ ] Encode type expressions into a `TypeExpr` type and include in `TypeDecl`
