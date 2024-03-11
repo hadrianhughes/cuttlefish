@@ -1,7 +1,9 @@
 module Ast where
 
+data Type = Int | Float | Bool | Unit | Char
+
 data Bind = Bind { name :: Text }
 
-data TypeDecl = TypeDecl { name :: Text, value :: Type }
+data TypeDef = TypeDef { name :: Text, value :: Type }
 
-data Program = Program [Bind] [Type] [TypeSig] deriving (Eq, Show)
+data Program = Program [Bind] [TypeDef] [TypeSig] deriving (Eq, Show)
