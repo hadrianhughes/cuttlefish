@@ -1,5 +1,6 @@
 module Parser where
 
+import           Data.Char
 import           Text.Megaparsec
 import           Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
@@ -35,3 +36,14 @@ squotes = between (symbol "'") (symbol "'")
 
 dquotes :: Parser a -> Parser a
 dquotes = between (symbol "\"") (symbol "\"")
+
+rword :: Text -> Parser ()
+rword w = (lexeme . try) (string w *> notFollowedBy alphaNumChar)
+
+rws :: [Text]
+rws =
+  [ "type"
+  , "int"
+  , "unit"
+  , "float"
+  , "char" ]
