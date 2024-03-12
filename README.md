@@ -4,5 +4,5 @@ The language will not necessarily be called Cuttlefish--I just needed a repo nam
 
 ## TODO list
 
-- [ ] Make a list of the possible "type expressions"
-- [ ] Encode type expressions into a `TypeExpr` type and include in `TypeDecl`
+- [x] Make a list of the possible "type expressions"
+- [x] Encode type expressions into a `TypeExpr` type and include in `TypeDecl`
