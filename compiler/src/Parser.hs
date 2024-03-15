@@ -11,6 +11,7 @@ import qualified Data.Text                  as T
 import           Control.Monad ( void )
 import           Data.Void
 import           Data.String.Conversions
+import           Ast
 
 type Parser = Parsec Void Text
 
@@ -59,3 +60,6 @@ typeIdentifier = (lexeme . try) p
   where
     p = fmap T.pack $ (:) <$> upperChar
                           <*> many alphaNumChar
+
+typeDecl :: Parser TypeDefn
+typeDecl = TypeDefn <$> rword "type" <*> typeIdentifier
