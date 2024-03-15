@@ -53,3 +53,9 @@ rws =
   , "unit"
   , "float"
   , "char" ]
+
+typeIdentifier :: Parser Text
+typeIdentifier = (lexeme . try) p
+  where
+    p = fmap T.pack $ (:) <$> upperChar
+                          <*> many alphaNumChar
