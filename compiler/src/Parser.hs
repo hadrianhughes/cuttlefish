@@ -15,7 +15,7 @@ import           Data.String.Conversions
 type Parser = Parsec Void Text
 
 sc :: Parser ()
-sc = L.space space1 lineCmnt blockCmnt
+sc = L.space space1 lineCmnt empty
   where
     lineCmnt = L.skipLineComment "//"
 
