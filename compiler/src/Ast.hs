@@ -1,21 +1,22 @@
 module Ast where
 
+import Data.Text (Text)
+
 data PrimType = Int | Float | Bool | Unit | Char
 
-data Type = FuncType { arg :: Type, rtn :: Type }
-          | ListType Type
-          | TupleType [Type]
-          | StructType [(Text, Type)]
-          | SetType Type
-          | ConstrType { name :: Text, args :: [Type] }
-          | TypeRef { name :: Text, args :: [Type] }
-          | TypeVar Text
-          | PrimType
+data TypeExpr = FuncType { arg :: TypeExpr, rtn :: TypeExpr }
+              | ListType TypeExpr
+              | TupleType [TypeExpr]
+              | StructType [(Text, TypeExpr)]
+              | SetType TypeExpr
+              | InlineType { inlineTypeName :: Text, args :: [TypeExpr] }
+              | TypeVar Text
+              | PrimType PrimType
 
-data Defn = Defn { name :: Text }
+data Defn = Defn { defnName :: Text }
 
-data TypeDefn = TypeDefn { name :: Text, value :: Type }
+data TypeDefn = TypeDefn { typeDefnName :: Text, value :: TypeExpr }
 
-data TypeSig = TypeSig Text Type
+data TypeSig = TypeSig Text TypeExpr
 
-data Program = Program [Defn] [TypeDef] [TypeSig] deriving (Eq, Show)
+data Program = Program [Defn] [TypeDefn] [TypeSig]
