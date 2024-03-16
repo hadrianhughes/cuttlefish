@@ -80,27 +80,30 @@ typeIdentifier = (lexeme . try) p
     p = fmap T.pack $ (:) <$> upperChar
                           <*> many alphaNumChar
 
-inlineType :: Parser TypeExpr
-inlineType = InlineType <$> typeIdentifier <*> many typeExpr'
+typeVariable :: Parser Text
+typeVariable = (lexeme . try) p
+  where
+    p = fmap T.pack $ (:) <$> lowerChar
+                          <*> many alphaNumChar
+
+containedTypeExpr :: Parser TypeExpr
+containedTypeExpr = ListType        <$> brackets containedTypeExpr
+                <|> try (TupleType  <$> parens (containedTypeExpr `sepBy` comma))
+                <|> try (StructType <$> braces (keyValPair `sepBy` comma))
+                <|> SetType         <$> braces containedTypeExpr
+                <|> try (InlineType <$> typeIdentifier <*> many containedTypeExpr)
+                <|> try (PrimType   <$> primType)
+                <|> TypeVar         <$> typeVariable
+                <|> parens typeExpr
+                where
+                  keyValPair = do
+                    key <- identifier
+                    val <- symbol ":" *> containedTypeExpr
+                    return (key, val)
 
 typeExpr :: Parser TypeExpr
-typeExpr = FuncType   <$> typeExpr <* symbol "->" *> typeExpr
-       <|> ListType   <$> brackets typeExpr
-       <|> TupleType  <$> parens (typeExpr `sepBy` comma)
-       <|> StructType <$> braces (keyValPair `sepBy` comma)
-       <|> SetType    <$> braces typeExpr
-       <|> inlineType
-       <|> TypeVar    <$> camelId
-       <|> PrimType   <$> primType
-         where
-          camelId = fmap T.pack $ (:) <$> lowerChar <*> many alphaNumChar
-          keyValPair = do
-            key <- identifier <* symbol ":"
-            val <- typeExpr
-            return (key, val)
-
-typeExpr' :: Parser TypeExpr
-typeExpr' = inlineType <|> parens typeExpr
+typeExpr = try (FuncType <$> (containedTypeExpr <* symbol "->") <*> containedTypeExpr)
+       <|> containedTypeExpr
 
 typeDefn :: Parser TypeDefn
 typeDefn = TypeDefn <$> (rword "type" *> typeIdentifier) <*> (symbol "=" *> typeExpr)
