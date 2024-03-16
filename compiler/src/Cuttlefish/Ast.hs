@@ -16,7 +16,9 @@ data TypeExpr = FuncType { arg :: TypeExpr, rtn :: TypeExpr }
 
 data Defn = Defn { defnName :: Text }
 
-data TypeDefn = TypeDefn { typeDefnName :: Text, value :: TypeExpr } deriving (Show)
+data TypeDefn = TypeDefn { typeDefnName :: Text
+                         , typeArgs :: [Text]
+                         , value :: TypeExpr } deriving (Show)
 
 data TypeSig = TypeSig Text TypeExpr
 

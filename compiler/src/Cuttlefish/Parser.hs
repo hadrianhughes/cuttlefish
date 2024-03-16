@@ -106,7 +106,10 @@ typeExprP = try (FuncType <$> (containedTypeExprP <* symbol "->") <*> containedT
        <|> containedTypeExprP
 
 typeDefnP :: Parser TypeDefn
-typeDefnP = TypeDefn <$> (rword "type" *> typeIdentifier) <*> (symbol "=" *> typeExprP)
+typeDefnP = TypeDefn
+  <$> (rword "type" *> typeIdentifier)
+  <*> many typeVariable
+  <*> (symbol "=" *> typeExprP)
 
 programP :: Parser Program
 programP = between sc eof $ Program <$> many typeDefnP
