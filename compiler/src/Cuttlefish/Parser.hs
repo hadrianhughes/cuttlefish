@@ -1,6 +1,9 @@
-{-# LANGUAGE OverloadedStrings #-}
-
-module Parser where
+module Cuttlefish.Parser
+  ( programP
+  , runParser
+  , errorBundlePretty
+  )
+where
 
 import           Data.Char
 import           Text.Megaparsec
@@ -11,7 +14,7 @@ import qualified Data.Text                  as T
 import           Control.Monad ( void )
 import           Data.Void
 import           Data.String.Conversions
-import           Ast
+import           Cuttlefish.Ast
 
 type Parser = Parsec Void Text
 
@@ -101,3 +104,6 @@ typeExpr' = inlineType <|> parens typeExpr
 
 typeDefn :: Parser TypeDefn
 typeDefn = TypeDefn <$> (rword "type" *> typeIdentifier) <*> (symbol "=" *> typeExpr)
+
+programP :: Parser Program
+programP = between sc eof $ Program <$> many typeDefn
