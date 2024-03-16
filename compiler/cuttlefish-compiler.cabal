@@ -17,7 +17,6 @@ executable cuttlefish-compiler
     , text
     , cuttlefish-compiler
     , optparse-applicative
-    , prettyprinter
     , pretty-simple
   hs-source-dirs:   app
   default-extensions: OverloadedStrings

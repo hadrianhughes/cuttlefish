@@ -1,8 +1,9 @@
 module Main where
 
-import Cuttlefish
+import           Cuttlefish
 import           Options.Applicative
 import qualified Data.Text.IO                          as T
+import           Text.Pretty.Simple
 
 data Options = Options { infile :: FilePath }
 
@@ -15,7 +16,7 @@ runOpts opts = do
   let parseTree = runParser programP (infile opts) program
   case parseTree of
     Left  err -> putStrLn $ errorBundlePretty err
-    Right ast -> putStrLn $ show ast
+    Right ast -> pPrint ast
 
 main :: IO ()
 main = runOpts =<< execParser (optionsP `withInfo` infoString)
