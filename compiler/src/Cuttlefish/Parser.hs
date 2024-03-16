@@ -11,4 +11,6 @@ import Cuttlefish.Parser.Types
 import Cuttlefish.Ast
 
 programP :: Parser Program
-programP = between sc eof $ Program <$> many typeDefnP
+programP = between sc eof $ Program
+  <$> many typeDefnP
+  <*> many typeSigP

@@ -20,6 +20,6 @@ data TypeDefn = TypeDefn { typeDefnName :: Text
                          , typeArgs :: [Text]
                          , value :: TypeExpr } deriving (Show)
 
-data TypeSig = TypeSig Text TypeExpr
+data TypeSig = TypeSig Text TypeExpr deriving (Show)
 
-data Program = Program [TypeDefn] deriving (Show)
+data Program = Program [TypeDefn] [TypeSig] deriving (Show)

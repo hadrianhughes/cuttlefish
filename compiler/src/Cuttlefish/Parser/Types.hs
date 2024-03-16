@@ -51,3 +51,6 @@ typeDefnP = TypeDefn
   <$> (rword "type" *> typeIdentifier)
   <*> many typeVariable
   <*> (symbol "=" *> typeExprP)
+
+typeSigP :: Parser TypeSig
+typeSigP = TypeSig <$> (identifier <* symbol "::") <*> typeExprP
