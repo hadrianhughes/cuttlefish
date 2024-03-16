@@ -51,7 +51,9 @@ rws =
   , "int"
   , "unit"
   , "float"
-  , "char" ]
+  , "char"
+  , "if"
+  , "else" ]
 
 identifier :: Parser Text
 identifier = (lexeme . try) (p >>= check)

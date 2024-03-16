@@ -23,8 +23,13 @@ data TypeSig = TypeSig Text TypeExpr deriving (Show)
 data Expr = Reference Text
           | FuncCall Text [Expr] deriving (Show)
 
-data Defn = Defn { defnName :: Text
-                 , fnArgs :: [Text]
-                 , value :: Expr} deriving (Show)
+data Defn = Defn { defnName :: Text , fnArgs :: [Text] , value :: Expr }
+          | AlgoDefn { defnName :: Text , fnArgs :: [Text] , algo :: Algo }
+          deriving (Show)
+
+data Algo = Algo [Statement] deriving (Show)
+
+data Statement = IfStmt Expr Algo (Maybe Algo)
+               | Expr Expr deriving (Show)
 
 data Program = Program [TypeSig] [Defn] [TypeDefn] deriving (Show)
