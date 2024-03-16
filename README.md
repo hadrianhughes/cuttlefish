@@ -2,7 +2,6 @@ A project with the aim of building a programming language that is as 'correct' a
 
 The language will not necessarily be called Cuttlefish--I just needed a repo name.
 
-## TODO list
+## Next
 
-- [x] Make a list of the possible "type expressions"
-- [x] Encode type expressions into a `TypeExpr` type and include in `TypeDecl`
+The space consumer currently consumes new lines, which is causing bugs. We need two separate space consumers, one that consumes new lines and one that preserves them.
