@@ -86,27 +86,27 @@ typeVariable = (lexeme . try) p
     p = fmap T.pack $ (:) <$> lowerChar
                           <*> many alphaNumChar
 
-containedTypeExpr :: Parser TypeExpr
-containedTypeExpr = ListType        <$> brackets containedTypeExpr
-                <|> try (TupleType  <$> parens (containedTypeExpr `sepBy` comma))
+containedTypeExprP :: Parser TypeExpr
+containedTypeExprP = ListType       <$> brackets containedTypeExprP
+                <|> try (TupleType  <$> parens (containedTypeExprP `sepBy` comma))
                 <|> try (StructType <$> braces (keyValPair `sepBy` comma))
-                <|> SetType         <$> braces containedTypeExpr
-                <|> try (InlineType <$> typeIdentifier <*> many containedTypeExpr)
+                <|> SetType         <$> braces containedTypeExprP
+                <|> try (InlineType <$> typeIdentifier <*> many containedTypeExprP)
                 <|> try (PrimType   <$> primType)
                 <|> TypeVar         <$> typeVariable
-                <|> parens typeExpr
+                <|> parens typeExprP
                 where
                   keyValPair = do
                     key <- identifier
-                    val <- symbol ":" *> containedTypeExpr
+                    val <- symbol ":" *> containedTypeExprP
                     return (key, val)
 
-typeExpr :: Parser TypeExpr
-typeExpr = try (FuncType <$> (containedTypeExpr <* symbol "->") <*> containedTypeExpr)
-       <|> containedTypeExpr
+typeExprP :: Parser TypeExpr
+typeExprP = try (FuncType <$> (containedTypeExprP <* symbol "->") <*> containedTypeExprP)
+       <|> containedTypeExprP
 
-typeDefn :: Parser TypeDefn
-typeDefn = TypeDefn <$> (rword "type" *> typeIdentifier) <*> (symbol "=" *> typeExpr)
+typeDefnP :: Parser TypeDefn
+typeDefnP = TypeDefn <$> (rword "type" *> typeIdentifier) <*> (symbol "=" *> typeExprP)
 
 programP :: Parser Program
-programP = between sc eof $ Program <$> many typeDefn
+programP = between sc eof $ Program <$> many typeDefnP
