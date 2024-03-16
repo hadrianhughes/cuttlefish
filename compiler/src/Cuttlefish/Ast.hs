@@ -14,12 +14,17 @@ data TypeExpr = FuncType { arg :: TypeExpr, rtn :: TypeExpr }
               | PrimType PrimType
               deriving (Show)
 
-data Defn = Defn { defnName :: Text }
-
 data TypeDefn = TypeDefn { typeDefnName :: Text
                          , typeArgs :: [Text]
-                         , value :: TypeExpr } deriving (Show)
+                         , typeValue :: TypeExpr } deriving (Show)
 
 data TypeSig = TypeSig Text TypeExpr deriving (Show)
 
-data Program = Program [TypeDefn] [TypeSig] deriving (Show)
+data Expr = Reference Text
+          | FuncCall Text [Expr] deriving (Show)
+
+data Defn = Defn { defnName :: Text
+                 , fnArgs :: [Text]
+                 , value :: Expr} deriving (Show)
+
+data Program = Program [TypeSig] [Defn] [TypeDefn] deriving (Show)
