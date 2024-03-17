@@ -57,4 +57,5 @@ data Program = Program
                 [Defn]
                 [TypeDefn]
                 [ClassDefn]
+                [MembershipDefn]
                 deriving (Show)

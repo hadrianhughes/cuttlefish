@@ -7,6 +7,7 @@ import qualified Data.Text                  as T
 import           Control.Monad ( void )
 import           Cuttlefish.Ast
 import           Cuttlefish.Parser.Core
+import           Cuttlefish.Parser.Body
 
 primType :: Parser PrimType
 primType = Int   <$ rword "int"
@@ -61,3 +62,6 @@ typeSigP = endLine $ TypeSig <$> (identifier <* symbol "::") <*> typeExprP
 
 classDefnP :: Parser ClassDefn
 classDefnP = ClassDefn <$> (rword "class" *> typeConstraintP) <*> braces (many typeSigP)
+
+membershipP :: Parser MembershipDefn
+membershipP = MembershipDefn <$> (rword "member" *> typeIdentifier) <*> (rword "of" *> typeIdentifier) <*> braces (many defnP)
