@@ -37,6 +37,7 @@ data Algo = Algo [Statement] deriving (Show)
 data Statement = IfStmt Expr Algo (Maybe Algo)
                | VarBind { varName :: Text, varValue :: Expr, mutable :: Bool }
                | Expr Expr
+               | ForLoop Text Expr Algo
                deriving (Show)
 
 data Program = Program [TypeSig] [Defn] [TypeDefn] deriving (Show)

@@ -49,5 +49,6 @@ varBindP = rword "let" *> do
 statementP :: Parser Statement
 statementP = endLine $
              IfStmt  <$> (rword "if" *> exprP) <*> algoP <*> optional (rword "else" *> algoP)
+         <|> ForLoop <$> (rword "for" *> identifier) <*> (rword "in" *> exprP) <*> algoP
          <|> varBindP
          <|> Expr    <$> exprP
