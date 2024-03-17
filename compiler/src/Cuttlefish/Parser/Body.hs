@@ -14,12 +14,14 @@ exprP = try (FuncCall <$> identifier <*> some containedExprP)
     <|> containedExprP
 
 defnP :: Parser Defn
-defnP = try (Defn <$> identifier <*> many identifier <*> (symbol "=" *> exprP))
+defnP = endLine $
+        try (Defn <$> identifier <*> many identifier <*> (symbol "=" *> exprP))
     <|> AlgoDefn <$> identifier <*> many identifier <*> algoP
 
 algoP :: Parser Algo
 algoP = Algo <$> braces (many statementP)
 
 statementP :: Parser Statement
-statementP = IfStmt <$> (rword "if" *> exprP) <*> algoP <*> optional (rword "else" *> algoP)
+statementP = endLine $
+             IfStmt <$> (rword "if" *> exprP) <*> algoP <*> optional (rword "else" *> algoP)
          <|> Expr <$> exprP

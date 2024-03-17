@@ -23,6 +23,9 @@ hsc = L.space hspace1 lineCmnt empty
   where
     lineCmnt = L.skipLineComment "//"
 
+endLine :: Parser a -> Parser a
+endLine p = p <* sc
+
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme hsc
 
