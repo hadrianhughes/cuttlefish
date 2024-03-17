@@ -58,7 +58,7 @@ typeDefnP = TypeDefn
   <*> (symbol "=" *> typeExprP)
 
 typeSigP :: Parser TypeSig
-typeSigP = endLine $ TypeSig
+typeSigP = TypeSig
   <$> (identifier <* symbol "::")
   <*> typeExprP
 

@@ -33,11 +33,10 @@ containedExprP = try (FuncCall <$> identifier <*> some containedExprP)
 
 openExprP :: Parser Expr
 openExprP = try (Ternary <$> containedExprP <*> (symbol "?" *> containedExprP) <*> (symbol ":" *> containedExprP))
-       <|> containedExprP
+        <|> containedExprP
 
 defnP :: Parser Defn
-defnP = endLine $
-        try (Defn <$> identifier <*> many identifier <*> (symbol "=" *> openExprP))
+defnP = try (Defn <$> identifier <*> many identifier <*> (symbol "=" *> openExprP))
     <|> AlgoDefn <$> identifier <*> many identifier <*> algoP
 
 algoP :: Parser Algo
@@ -51,8 +50,7 @@ varBindP = rword "let" *> do
   return $ VarBind name value (isJust mut)
 
 statementP :: Parser Statement
-statementP = endLine $
-             IfStmt  <$> (rword "if" *> openExprP) <*> algoP <*> optional (rword "else" *> algoP)
+statementP = IfStmt  <$> (rword "if" *> openExprP) <*> algoP <*> optional (rword "else" *> algoP)
          <|> ForLoop <$> (rword "for" *> identifier) <*> (rword "in" *> openExprP) <*> algoP
          <|> varBindP
          <|> Return  <$> (rword "return" *> openExprP)

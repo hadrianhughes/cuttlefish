@@ -18,22 +18,14 @@ sc = L.space space1 lineCmnt empty
   where
     lineCmnt = L.skipLineComment "//"
 
-hsc :: Parser ()
-hsc = L.space hspace1 lineCmnt empty
-  where
-    lineCmnt = L.skipLineComment "//"
-
-endLine :: Parser a -> Parser a
-endLine p = p <* sc
-
 integer :: Parser Int
-integer = lexeme (L.signed hsc L.decimal)
+integer = lexeme (L.signed sc L.decimal)
 
 float :: Parser Double
-float = L.signed hsc L.float
+float = L.signed sc L.float
 
 lexeme :: Parser a -> Parser a
-lexeme = L.lexeme hsc
+lexeme = L.lexeme sc
 
 symbol :: Text -> Parser Text
 symbol = L.symbol sc
@@ -48,10 +40,10 @@ braces :: Parser a -> Parser a
 braces = between (symbol "{") (symbol "}")
 
 squotes :: Parser a -> Parser a
-squotes = between (L.symbol hsc "'") (L.symbol hsc "'")
+squotes = between (L.symbol sc "'") (L.symbol sc "'")
 
 dquotes :: Parser a -> Parser a
-dquotes = between (L.symbol hsc "\"") (L.symbol hsc "\"")
+dquotes = between (L.symbol sc "\"") (L.symbol sc "\"")
 
 comma :: Parser ()
 comma = void $ symbol ","
