@@ -67,7 +67,9 @@ rws =
   , "float"
   , "char"
   , "if"
-  , "else" ]
+  , "else"
+  , "let"
+  , "mut" ]
 
 binopChars :: [Char]
 binopChars = "&|=!><+-*/^"

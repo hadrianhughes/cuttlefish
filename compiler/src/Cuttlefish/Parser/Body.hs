@@ -2,6 +2,7 @@ module Cuttlefish.Parser.Body where
 
 import           Data.Char
 import qualified Data.Text              as T
+import           Data.Maybe
 import           Text.Megaparsec
 import           Text.Megaparsec.Char
 import           Cuttlefish.Parser.Core
@@ -38,7 +39,15 @@ defnP = endLine $
 algoP :: Parser Algo
 algoP = Algo <$> braces (many statementP)
 
+varBindP :: Parser Statement
+varBindP = rword "let" *> do
+  mut   <- optional (rword "mut")
+  name  <- identifier
+  value <- symbol "=" *> exprP
+  return $ VarBind name value (isJust mut)
+
 statementP :: Parser Statement
 statementP = endLine $
-             IfStmt <$> (rword "if" *> exprP) <*> algoP <*> optional (rword "else" *> algoP)
-         <|> Expr <$> exprP
+             IfStmt  <$> (rword "if" *> exprP) <*> algoP <*> optional (rword "else" *> algoP)
+         <|> varBindP
+         <|> Expr    <$> exprP

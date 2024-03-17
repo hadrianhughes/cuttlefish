@@ -35,6 +35,8 @@ data Defn = Defn { defnName :: Text , fnArgs :: [Text] , value :: Expr }
 data Algo = Algo [Statement] deriving (Show)
 
 data Statement = IfStmt Expr Algo (Maybe Algo)
-               | Expr Expr deriving (Show)
+               | VarBind { varName :: Text, varValue :: Expr, mutable :: Bool }
+               | Expr Expr
+               deriving (Show)
 
 data Program = Program [TypeSig] [Defn] [TypeDefn] deriving (Show)
