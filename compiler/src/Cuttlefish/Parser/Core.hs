@@ -63,7 +63,6 @@ rws :: [Text]
 rws =
   [ "type"
   , "int"
-  , "unit"
   , "float"
   , "char"
   , "if"

@@ -13,8 +13,8 @@ primType :: Parser PrimType
 primType = Int   <$ rword "int"
        <|> Float <$ rword "float"
        <|> Bool  <$ rword "bool"
-       <|> Unit  <$ rword "unit"
        <|> Char  <$ rword "char"
+       <|> Unit  <$ symbol "()"
 
 typeIdentifier :: Parser Text
 typeIdentifier = (lexeme . try) p
@@ -30,7 +30,7 @@ typeVariable = (lexeme . try) p
 
 containedTypeExprP :: Parser TypeExpr
 containedTypeExprP = ListType       <$> brackets containedTypeExprP
-                <|> try (TupleType  <$> parens (containedTypeExprP `sepBy` comma))
+                <|> try (TupleType  <$> parens (containedTypeExprP `sepBy1` comma))
                 <|> try (StructType <$> braces (keyValPair `sepBy` comma))
                 <|> SetType         <$> braces containedTypeExprP
                 <|> try (InlineType <$> typeIdentifier <*> many containedTypeExprP)
