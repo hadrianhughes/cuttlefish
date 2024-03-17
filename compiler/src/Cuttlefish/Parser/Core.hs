@@ -26,6 +26,12 @@ hsc = L.space hspace1 lineCmnt empty
 endLine :: Parser a -> Parser a
 endLine p = p <* sc
 
+integer :: Parser Int
+integer = lexeme (L.signed hsc L.decimal)
+
+float :: Parser Double
+float = L.signed hsc L.float
+
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme hsc
 
@@ -42,10 +48,10 @@ braces :: Parser a -> Parser a
 braces = between (symbol "{") (symbol "}")
 
 squotes :: Parser a -> Parser a
-squotes = between (symbol "'") (symbol "'")
+squotes = between (L.symbol hsc "'") (L.symbol hsc "'")
 
 dquotes :: Parser a -> Parser a
-dquotes = between (symbol "\"") (symbol "\"")
+dquotes = between (L.symbol hsc "\"") (L.symbol hsc "\"")
 
 comma :: Parser ()
 comma = void $ symbol ","

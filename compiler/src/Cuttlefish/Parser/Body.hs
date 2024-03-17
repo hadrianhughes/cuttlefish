@@ -7,9 +7,11 @@ import           Text.Megaparsec.Char
 import           Cuttlefish.Parser.Core
 import           Cuttlefish.Ast
 
-containedExprP :: Parser Expr
-containedExprP = Reference <$> identifier
-             <|> parens exprP
+literalP :: Parser Expr
+literalP = IntLit   <$> integer
+       <|> FloatLit <$> float
+       <|> StrLit   <$> dquotes (takeWhileP Nothing (/= '"'))
+       <|> CharLit  <$> squotes (ord <$> satisfy (`notElem` ['\\', '\'']) <|> (single '\\' >> integer))
 
 operatorP :: Parser Expr
 operatorP = do

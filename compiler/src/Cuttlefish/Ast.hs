@@ -21,7 +21,12 @@ data TypeDefn = TypeDefn { typeDefnName :: Text
 data TypeSig = TypeSig Text TypeExpr deriving (Show)
 
 data Expr = Reference Text
-          | FuncCall Text [Expr] deriving (Show)
+          | FuncCall  Text [Expr]
+          | IntLit    Int
+          | StrLit    Text
+          | CharLit   Int
+          | FloatLit  Double
+          deriving (Show)
 
 data Defn = Defn { defnName :: Text , fnArgs :: [Text] , value :: Expr }
           | AlgoDefn { defnName :: Text , fnArgs :: [Text] , algo :: Algo }
