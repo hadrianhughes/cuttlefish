@@ -48,7 +48,7 @@ typeConstraintP = TypeConstraint <$> typeIdentifier <*> typeVariable
 
 typeExprP :: Parser TypeExpr
 typeExprP = try (ConstraintWrap <$> ((:[]) <$> typeConstraintP <|> parens (typeConstraintP `sepBy1` comma)) <*> (symbol "=>" *> typeExprP))
-        <|> try (FuncType <$> (containedTypeExprP <* symbol "->") <*> containedTypeExprP)
+        <|> try (FuncType <$> (containedTypeExprP <* symbol "->") <*> typeExprP)
         <|> containedTypeExprP
 
 typeDefnP :: Parser TypeDefn
