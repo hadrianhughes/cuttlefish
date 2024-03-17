@@ -22,7 +22,8 @@ operatorP = do
   return $ FuncCall fn [arg1, arg2]
 
 containedExprP :: Parser Expr
-containedExprP = Reference <$> identifier
+containedExprP = Reference
+             <$> identifier
              <|> literalP
              <|> parens exprP
 
