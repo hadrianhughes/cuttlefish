@@ -51,4 +51,5 @@ statementP = endLine $
              IfStmt  <$> (rword "if" *> exprP) <*> algoP <*> optional (rword "else" *> algoP)
          <|> ForLoop <$> (rword "for" *> identifier) <*> (rword "in" *> exprP) <*> algoP
          <|> varBindP
+         <|> Return  <$> (rword "return" *> exprP)
          <|> Expr    <$> exprP
