@@ -57,4 +57,7 @@ typeDefnP = TypeDefn
   <*> (symbol "=" *> typeExprP)
 
 typeSigP :: Parser TypeSig
-typeSigP = TypeSig <$> (identifier <* symbol "::") <*> typeExprP
+typeSigP = endLine $ TypeSig <$> (identifier <* symbol "::") <*> typeExprP
+
+classDefnP :: Parser ClassDefn
+classDefnP = ClassDefn <$> (rword "class" *> typeConstraintP) <*> braces (many typeSigP)

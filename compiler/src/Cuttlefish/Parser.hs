@@ -12,14 +12,17 @@ import Cuttlefish.Parser.Types
 import Cuttlefish.Parser.Body
 import Cuttlefish.Ast
 
-data ProgramRoot = RTypeSig TypeSig
-                 | RDefn Defn
-                 | RTypeDefn TypeDefn
+data ProgramRoot = RClassDefn ClassDefn
+                 | RTypeSig   TypeSig
+                 | RDefn      Defn
+                 | RTypeDefn  TypeDefn
 
 programRootsP :: Parser [ProgramRoot]
-programRootsP = many $ try (RTypeDefn <$> typeDefnP)
-            <|> try (RTypeSig <$> typeSigP)
-            <|> try (RDefn <$> defnP)
+programRootsP = many $
+                try (RClassDefn <$> classDefnP)
+            <|> try (RTypeDefn  <$> typeDefnP)
+            <|> try (RTypeSig   <$> typeSigP)
+            <|> try (RDefn      <$> defnP)
 
 sigs :: [ProgramRoot] -> [TypeSig]
 sigs r = [s | RTypeSig s <- r]
@@ -30,7 +33,14 @@ defns r = [d | RDefn d <- r]
 typeDefns :: [ProgramRoot] -> [TypeDefn]
 typeDefns r = [td | RTypeDefn td <- r]
 
+classDefns :: [ProgramRoot] -> [ClassDefn]
+classDefns r = [c | RClassDefn c <- r]
+
 programP :: Parser Program
 programP = between sc eof $ do
   roots <- programRootsP
-  return $ Program (sigs roots) (defns roots) (typeDefns roots)
+  return $ Program
+    (sigs roots)
+    (defns roots)
+    (typeDefns roots)
+    (classDefns roots)

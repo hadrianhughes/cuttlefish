@@ -23,6 +23,10 @@ data TypeDefn = TypeDefn { typeDefnName :: Text
 
 data TypeSig = TypeSig Text TypeExpr deriving (Show)
 
+data ClassDefn = ClassDefn { classType :: TypeConstraint
+                           , classSigs :: [TypeSig] }
+                           deriving (Show)
+
 data Expr = Reference Text
           | FuncCall  Text [Expr]
           | IntLit    Int
@@ -37,10 +41,20 @@ data Defn = Defn { defnName :: Text , fnArgs :: [Text] , value :: Expr }
 
 data Algo = Algo [Statement] deriving (Show)
 
+data MembershipDefn = MembershipDefn { membType :: Text
+                                     , membClass :: Text
+                                     , membDefns :: [Defn] }
+                                     deriving (Show)
+
 data Statement = IfStmt Expr Algo (Maybe Algo)
                | VarBind { varName :: Text, varValue :: Expr, mutable :: Bool }
                | Expr Expr
                | ForLoop Text Expr Algo
                deriving (Show)
 
-data Program = Program [TypeSig] [Defn] [TypeDefn] deriving (Show)
+data Program = Program
+                [TypeSig]
+                [Defn]
+                [TypeDefn]
+                [ClassDefn]
+                deriving (Show)

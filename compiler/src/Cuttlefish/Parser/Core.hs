@@ -71,7 +71,8 @@ rws =
   , "let"
   , "mut"
   , "for"
-  , "in" ]
+  , "in"
+  , "class" ]
 
 binopChars :: [Char]
 binopChars = "&|=!><+-*/^"
