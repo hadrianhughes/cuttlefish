@@ -18,8 +18,13 @@ sc = L.space space1 lineCmnt empty
   where
     lineCmnt = L.skipLineComment "//"
 
+hsc :: Parser ()
+hsc = L.space hspace1 lineCmnt empty
+  where
+    lineCmnt = L.skipLineComment "//"
+
 lexeme :: Parser a -> Parser a
-lexeme = L.lexeme sc
+lexeme = L.lexeme hsc
 
 symbol :: Text -> Parser Text
 symbol = L.symbol sc
