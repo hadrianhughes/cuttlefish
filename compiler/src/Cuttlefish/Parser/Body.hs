@@ -5,6 +5,7 @@ import qualified Data.Text              as T
 import           Data.Maybe
 import           Text.Megaparsec
 import           Text.Megaparsec.Char
+import qualified Text.Megaparsec.Char.Lexer as L
 import           Cuttlefish.Parser.Core
 import           Cuttlefish.Ast
 
@@ -16,42 +17,44 @@ literalP = IntLit   <$> integer
 
 operatorP :: Parser Expr
 operatorP = do
-  arg1 <- atomicExprP
-  fn   <- binop
+  arg1 <- atomicExprP <* hsc
+  fn   <- binop <* hsc
   arg2 <- atomicExprP
   return $ FuncCall fn [arg1, arg2]
 
 atomicExprP :: Parser Expr
-atomicExprP = Reference <$> identifier
+atomicExprP = Reference <$> identifier hsc
           <|> literalP
-          <|> parens openExprP
+          <|> parens (openExprP fsc)
 
-containedExprP :: Parser Expr
-containedExprP = try (FuncCall <$> identifier <*> some containedExprP)
-             <|> try operatorP
-             <|> atomicExprP
+containedExprP :: Parser' Expr
+containedExprP sc = expr <* sc
+             where
+              expr = try (FuncCall <$> identifier hsc <*> some atomicExprP)
+                 <|> try operatorP
+                 <|> atomicExprP
 
-openExprP :: Parser Expr
-openExprP = try (Ternary <$> containedExprP <*> (symbol "?" *> containedExprP) <*> (symbol ":" *> containedExprP))
-        <|> containedExprP
+openExprP :: Parser' Expr
+openExprP sc = try (Ternary <$> containedExprP sc <*> (L.symbol sc "?" *> containedExprP sc) <*> (L.symbol sc ":" *> containedExprP sc))
+        <|> containedExprP sc
 
 defnP :: Parser Defn
-defnP = try (Defn <$> identifier <*> many identifier <*> (symbol "=" *> openExprP))
-    <|> AlgoDefn <$> identifier <*> many identifier <*> algoP
+defnP = try (Defn <$> identifier hsc <*> many (identifier hsc) <*> (L.symbol hsc "=" *> openExprP fsc))
+    <|> AlgoDefn <$> identifier hsc <*> many (identifier hsc) <*> algoP
 
 algoP :: Parser Algo
 algoP = Algo <$> braces (many statementP)
 
 varBindP :: Parser Statement
-varBindP = rword "let" *> do
-  mut   <- optional (rword "mut")
-  name  <- identifier
-  value <- symbol "=" *> openExprP
+varBindP = rword hsc "let" *> do
+  mut   <- optional (rword hsc "mut")
+  name  <- identifier hsc
+  value <- L.symbol fsc "=" *> openExprP fsc
   return $ VarBind name value (isJust mut)
 
 statementP :: Parser Statement
-statementP = IfStmt  <$> (rword "if" *> openExprP) <*> algoP <*> optional (rword "else" *> algoP)
-         <|> ForLoop <$> (rword "for" *> identifier) <*> (rword "in" *> openExprP) <*> algoP
+statementP = IfStmt  <$> (rword hsc "if" *> openExprP hsc) <*> algoP <*> optional (rword hsc "else" *> algoP)
+         <|> ForLoop <$> (rword hsc "for" *> identifier hsc) <*> (rword hsc "in" *> openExprP hsc) <*> algoP
          <|> varBindP
-         <|> Return  <$> (rword "return" *> openExprP)
-         <|> Expr    <$> openExprP
+         <|> Return  <$> (rword hsc "return" *> openExprP fsc)
+         <|> Expr    <$> openExprP fsc

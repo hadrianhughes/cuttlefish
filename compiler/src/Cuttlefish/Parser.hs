@@ -42,7 +42,7 @@ membershipDefns :: [ProgramRoot] -> [MembershipDefn]
 membershipDefns r = [m | RMembershipDefn m <- r]
 
 programP :: Parser Program
-programP = between sc eof $ do
+programP = between fsc eof $ do
   roots <- programRootsP
   return $ Program
     (sigs roots)

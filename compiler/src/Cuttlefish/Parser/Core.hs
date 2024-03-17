@@ -13,43 +13,47 @@ import           Cuttlefish.Ast
 
 type Parser = Parsec Void Text
 
-sc :: Parser ()
-sc = L.space space1 lineCmnt empty
+type Parser' a = Parser () -> Parser a
+
+fsc :: Parser ()
+fsc = L.space space1 lineCmnt empty
   where
     lineCmnt = L.skipLineComment "//"
 
+hsc :: Parser ()
+hsc = L.space hspace1 lineCmnt empty
+  where
+    lineCmnt = L.skipLineComment "//"
+
+lexeme :: Parser () -> Parser a -> Parser a
+lexeme sc = L.lexeme sc
+
 integer :: Parser Int
-integer = lexeme (L.signed sc L.decimal)
+integer = lexeme hsc (L.signed hsc L.decimal)
 
 float :: Parser Double
-float = L.signed sc L.float
-
-lexeme :: Parser a -> Parser a
-lexeme = L.lexeme sc
-
-symbol :: Text -> Parser Text
-symbol = L.symbol sc
+float = L.signed hsc (L.signed hsc L.float)
 
 parens :: Parser a -> Parser a
-parens = between (symbol "(") (symbol ")")
+parens = between (L.symbol fsc "(") (L.symbol fsc ")")
 
 brackets :: Parser a -> Parser a
-brackets = between (symbol "[") (symbol "]")
+brackets = between (L.symbol fsc "[") (L.symbol fsc "]")
 
 braces :: Parser a -> Parser a
-braces = between (symbol "{") (symbol "}")
+braces = between (L.symbol fsc "{") (L.symbol fsc "}")
 
 squotes :: Parser a -> Parser a
-squotes = between (L.symbol sc "'") (L.symbol sc "'")
+squotes = between (L.symbol hsc "'") (L.symbol fsc "'")
 
 dquotes :: Parser a -> Parser a
-dquotes = between (L.symbol sc "\"") (L.symbol sc "\"")
+dquotes = between (L.symbol hsc "\"") (L.symbol fsc "\"")
 
 comma :: Parser ()
-comma = void $ symbol ","
+comma = void $ L.symbol fsc ","
 
-rword :: Text -> Parser ()
-rword w = (lexeme . try) (string w *> notFollowedBy alphaNumChar)
+rword :: Parser () -> Text -> Parser ()
+rword sc w = (lexeme sc . try) (string w *> notFollowedBy alphaNumChar)
 
 rws :: [Text]
 rws =
@@ -72,10 +76,10 @@ binopChars :: [Char]
 binopChars = "&|=!><+-*/^"
 
 binop :: Parser Text
-binop = (lexeme . try) (T.pack <$> some (oneOf binopChars))
+binop = (L.lexeme hsc . try) (T.pack <$> some (oneOf binopChars))
 
-identifier :: Parser Text
-identifier = (lexeme . try) (p >>= check)
+identifier :: Parser () -> Parser Text
+identifier sc = (L.lexeme sc . try) (p >>= check)
   where
     p = fmap T.pack $ (:) <$> lowerChar
                           <*> many (alphaNumChar <|> single '_')

@@ -4,4 +4,6 @@ The language will not necessarily be called Cuttlefish--I just needed a repo nam
 
 ## Next
 
-The space consumer currently consumes new lines, which is causing bugs. We need two separate space consumers, one that consumes new lines and one that preserves them.
+- We basically just want to restrict the function call parser so it all has to be on one line. To do this, let's make a separate version of `atomicExprP` that uses the horizontal space consumer.
+- Also parse access for structs and lists
+- We need to think about destructuring things like tuples
