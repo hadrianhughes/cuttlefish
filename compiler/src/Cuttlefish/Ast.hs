@@ -4,12 +4,15 @@ import Data.Text (Text)
 
 data PrimType = Int | Float | Bool | Unit | Char deriving (Show)
 
+data TypeConstraint = TypeConstraint Text Text deriving (Show)
+
 data TypeExpr = FuncType { arg :: TypeExpr, rtn :: TypeExpr }
               | ListType TypeExpr
               | TupleType [TypeExpr]
               | StructType [(Text, TypeExpr)]
               | SetType TypeExpr
               | InlineType { inlineTypeName :: Text, args :: [TypeExpr] }
+              | ConstraintWrap [TypeConstraint] TypeExpr
               | TypeVar Text
               | PrimType PrimType
               deriving (Show)

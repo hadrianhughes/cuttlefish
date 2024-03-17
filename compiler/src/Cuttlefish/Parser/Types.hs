@@ -42,9 +42,13 @@ containedTypeExprP = ListType       <$> brackets containedTypeExprP
                     val <- symbol ":" *> containedTypeExprP
                     return (key, val)
 
+typeConstraintP :: Parser TypeConstraint
+typeConstraintP = TypeConstraint <$> typeIdentifier <*> typeVariable
+
 typeExprP :: Parser TypeExpr
-typeExprP = try (FuncType <$> (containedTypeExprP <* symbol "->") <*> containedTypeExprP)
-       <|> containedTypeExprP
+typeExprP = try (ConstraintWrap <$> ((:[]) <$> typeConstraintP <|> parens (typeConstraintP `sepBy1` comma)) <*> (symbol "=>" *> typeExprP))
+        <|> try (FuncType <$> (containedTypeExprP <* symbol "->") <*> containedTypeExprP)
+        <|> containedTypeExprP
 
 typeDefnP :: Parser TypeDefn
 typeDefnP = TypeDefn
