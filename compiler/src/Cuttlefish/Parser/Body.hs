@@ -1,16 +1,31 @@
 module Cuttlefish.Parser.Body where
 
-import Text.Megaparsec
-import Text.Megaparsec.Char
-import Cuttlefish.Parser.Core
-import Cuttlefish.Ast
+import           Data.Char
+import qualified Data.Text              as T
+import           Text.Megaparsec
+import           Text.Megaparsec.Char
+import           Cuttlefish.Parser.Core
+import           Cuttlefish.Ast
 
 containedExprP :: Parser Expr
 containedExprP = Reference <$> identifier
              <|> parens exprP
 
+operatorP :: Parser Expr
+operatorP = do
+  arg1 <- containedExprP
+  fn   <- binop
+  arg2 <- containedExprP
+  return $ FuncCall fn [arg1, arg2]
+
+containedExprP :: Parser Expr
+containedExprP = Reference <$> identifier
+             <|> literalP
+             <|> parens exprP
+
 exprP :: Parser Expr
 exprP = try (FuncCall <$> identifier <*> some containedExprP)
+    <|> try operatorP
     <|> containedExprP
 
 defnP :: Parser Defn

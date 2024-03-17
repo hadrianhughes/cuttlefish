@@ -63,6 +63,12 @@ rws =
   , "if"
   , "else" ]
 
+binopChars :: [Char]
+binopChars = "&|=!><+-*/^"
+
+binop :: Parser Text
+binop = (lexeme . try) (T.pack <$> some (oneOf binopChars))
+
 identifier :: Parser Text
 identifier = (lexeme . try) (p >>= check)
   where
