@@ -16,25 +16,28 @@ literalP = IntLit   <$> integer
 
 operatorP :: Parser Expr
 operatorP = do
-  arg1 <- containedExprP
+  arg1 <- atomicExprP
   fn   <- binop
-  arg2 <- containedExprP
+  arg2 <- atomicExprP
   return $ FuncCall fn [arg1, arg2]
 
-containedExprP :: Parser Expr
-containedExprP = Reference
-             <$> identifier
-             <|> literalP
-             <|> parens exprP
+atomicExprP :: Parser Expr
+atomicExprP = Reference <$> identifier
+          <|> literalP
+          <|> parens openExprP
 
-exprP :: Parser Expr
-exprP = try (FuncCall <$> identifier <*> some containedExprP)
-    <|> try operatorP
-    <|> containedExprP
+containedExprP :: Parser Expr
+containedExprP = try (FuncCall <$> identifier <*> some containedExprP)
+             <|> try operatorP
+             <|> atomicExprP
+
+openExprP :: Parser Expr
+openExprP = try (Ternary <$> containedExprP <*> (symbol "?" *> containedExprP) <*> (symbol ":" *> containedExprP))
+       <|> containedExprP
 
 defnP :: Parser Defn
 defnP = endLine $
-        try (Defn <$> identifier <*> many identifier <*> (symbol "=" *> exprP))
+        try (Defn <$> identifier <*> many identifier <*> (symbol "=" *> openExprP))
     <|> AlgoDefn <$> identifier <*> many identifier <*> algoP
 
 algoP :: Parser Algo
@@ -44,13 +47,13 @@ varBindP :: Parser Statement
 varBindP = rword "let" *> do
   mut   <- optional (rword "mut")
   name  <- identifier
-  value <- symbol "=" *> exprP
+  value <- symbol "=" *> openExprP
   return $ VarBind name value (isJust mut)
 
 statementP :: Parser Statement
 statementP = endLine $
-             IfStmt  <$> (rword "if" *> exprP) <*> algoP <*> optional (rword "else" *> algoP)
-         <|> ForLoop <$> (rword "for" *> identifier) <*> (rword "in" *> exprP) <*> algoP
+             IfStmt  <$> (rword "if" *> openExprP) <*> algoP <*> optional (rword "else" *> algoP)
+         <|> ForLoop <$> (rword "for" *> identifier) <*> (rword "in" *> openExprP) <*> algoP
          <|> varBindP
-         <|> Return  <$> (rword "return" *> exprP)
-         <|> Expr    <$> exprP
+         <|> Return  <$> (rword "return" *> openExprP)
+         <|> Expr    <$> openExprP
