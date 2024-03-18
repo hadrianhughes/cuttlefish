@@ -23,7 +23,7 @@ operatorP = do
   return $ FuncCall fn [arg1, arg2]
 
 atomicExprP :: Parser Expr
-atomicExprP = Reference <$> identifier hsc
+atomicExprP = Reference <$> (identifier hsc `sepBy1` L.symbol hsc ".")
           <|> literalP
           <|> parens (openExprP fsc)
 

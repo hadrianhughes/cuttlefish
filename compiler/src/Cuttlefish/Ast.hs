@@ -27,7 +27,7 @@ data ClassDefn = ClassDefn { classType :: TypeConstraint
                            , classSigs :: [TypeSig] }
                            deriving (Show)
 
-data Expr = Reference Text
+data Expr = Reference [Text]
           | Ternary   Expr Expr Expr
           | FuncCall  Text [Expr]
           | IntLit    Int
