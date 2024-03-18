@@ -2,9 +2,9 @@ module Cuttlefish.Ast where
 
 import Data.Text (Text)
 
-data PrimType = Int | Float | Bool | Unit | Char deriving (Show)
+data PrimType = Int | Float | Bool | Unit | Char deriving Show
 
-data TypeConstraint = TypeConstraint Text Text deriving (Show)
+data TypeConstraint = TypeConstraint Text Text deriving Show
 
 data TypeExpr = FuncType { arg :: TypeExpr, rtn :: TypeExpr }
               | ListType TypeExpr
@@ -15,17 +15,17 @@ data TypeExpr = FuncType { arg :: TypeExpr, rtn :: TypeExpr }
               | ConstraintWrap [TypeConstraint] TypeExpr
               | TypeVar Text
               | PrimType PrimType
-              deriving (Show)
+              deriving Show
 
 data TypeDefn = TypeDefn { typeDefnName :: Text
                          , typeArgs :: [Text]
-                         , typeValue :: TypeExpr } deriving (Show)
+                         , typeValue :: TypeExpr } deriving Show
 
-data TypeSig = TypeSig Text TypeExpr deriving (Show)
+data TypeSig = TypeSig Text TypeExpr deriving Show
 
 data ClassDefn = ClassDefn { classType :: TypeConstraint
                            , classSigs :: [TypeSig] }
-                           deriving (Show)
+                           deriving Show
 
 data Expr = Reference  [Text]
           | ListAccess Expr Expr
@@ -35,25 +35,25 @@ data Expr = Reference  [Text]
           | StrLit     Text
           | CharLit    Int
           | FloatLit   Double
-          deriving (Show)
+          deriving Show
 
 data Defn = Defn { defnName :: Text , fnArgs :: [Text] , value :: Expr }
           | AlgoDefn { defnName :: Text , fnArgs :: [Text] , algo :: Algo }
-          deriving (Show)
+          deriving Show
 
-data Algo = Algo [Statement] deriving (Show)
+data Algo = Algo [Statement] deriving Show
 
 data MembershipDefn = MembershipDefn { membType :: Text
                                      , membClass :: Text
                                      , membDefns :: [Defn] }
-                                     deriving (Show)
+                                     deriving Show
 
 data Statement = IfStmt Expr Algo (Maybe Algo)
                | VarBind { varName :: Text, varValue :: Expr, mutable :: Bool }
                | Expr Expr
                | ForLoop Text Expr Algo
                | Return Expr
-               deriving (Show)
+               deriving Show
 
 data Program = Program
                 [TypeSig]
@@ -61,4 +61,4 @@ data Program = Program
                 [TypeDefn]
                 [ClassDefn]
                 [MembershipDefn]
-                deriving (Show)
+                deriving Show
