@@ -4,4 +4,5 @@ The language will not necessarily be called Cuttlefish--I just needed a repo nam
 
 ## Next
 
-- We need to think about destructuring things like tuples
+- Set up union/enum for constructor type
+- Enable destructuring tuples and constructors
