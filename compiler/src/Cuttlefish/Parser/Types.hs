@@ -30,13 +30,13 @@ typeVariable sc = (lexeme sc . try) p
                           <*> many alphaNumChar
 
 containedTypeExprP :: Parser TypeExpr
-containedTypeExprP = ListType       <$> brackets containedTypeExprP
-                <|> try (TupleType  <$> parens (containedTypeExprP `sepBy1` comma))
-                <|> try (StructType <$> braces (keyValPair `sepBy` comma))
-                <|> SetType         <$> braces containedTypeExprP
-                <|> try (InlineType <$> typeIdentifier hsc <*> many containedTypeExprP)
-                <|> try (PrimType   <$> primType fsc)
-                <|> TypeVar         <$> typeVariable fsc
+containedTypeExprP = ListType            <$> brackets containedTypeExprP
+                <|> try (TupleType       <$> parens (containedTypeExprP `sepBy1` comma))
+                <|> try (StructType      <$> braces (keyValPair `sepBy` comma))
+                <|> SetType              <$> braces containedTypeExprP
+                <|> try (ConstructorType <$> typeIdentifier hsc <*> many containedTypeExprP)
+                <|> try (PrimType        <$> primType fsc)
+                <|> TypeVar              <$> typeVariable fsc
                 <|> parens typeExprP
                 where
                   keyValPair = do

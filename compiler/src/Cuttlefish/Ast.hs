@@ -11,7 +11,7 @@ data TypeExpr = FuncType { arg :: TypeExpr, rtn :: TypeExpr }
               | TupleType [TypeExpr]
               | StructType [(Text, TypeExpr)]
               | SetType TypeExpr
-              | InlineType { inlineTypeName :: Text, args :: [TypeExpr] }
+              | ConstructorType { inlineTypeName :: Text, args :: [TypeExpr] }
               | ConstraintWrap [TypeConstraint] TypeExpr
               | TypeVar Text
               | PrimType PrimType
