@@ -30,7 +30,8 @@ atomicExprP = Reference <$> (identifier hsc `sepBy1` L.symbol hsc ".")
 containedExprP :: Parser' Expr
 containedExprP sc = expr <* sc
              where
-              expr = try (FuncCall <$> identifier hsc <*> some atomicExprP)
+              expr = try (ListAccess <$> atomicExprP <*> brackets (openExprP hsc))
+                 <|> try (FuncCall <$> identifier hsc <*> some atomicExprP)
                  <|> try operatorP
                  <|> atomicExprP
 
