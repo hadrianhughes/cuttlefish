@@ -29,12 +29,20 @@ typeVariable sc = (lexeme sc . try) p
     p = fmap T.pack $ (:) <$> lowerChar
                           <*> many alphaNumChar
 
+dataConstructor :: Parser (Text, [TypeExpr])
+dataConstructor = p <* fsc
+  where
+    p = do
+      name <- typeIdentifier hsc
+      args <- many containedTypeExprP
+      return (name, args)
+
 containedTypeExprP :: Parser TypeExpr
 containedTypeExprP = ListType            <$> brackets containedTypeExprP
                 <|> try (TupleType       <$> parens (containedTypeExprP `sepBy1` comma))
                 <|> try (StructType      <$> braces (keyValPair `sepBy` comma))
                 <|> SetType              <$> braces containedTypeExprP
-                <|> try (ConstructorType <$> typeIdentifier hsc <*> many containedTypeExprP)
+                <|> try (TypeConstructor <$> dataConstructor `sepBy1` (L.symbol hsc "|"))
                 <|> try (PrimType        <$> primType fsc)
                 <|> TypeVar              <$> typeVariable fsc
                 <|> parens typeExprP
