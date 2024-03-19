@@ -54,7 +54,7 @@ data MembershipDefn = MembershipDefn { membType :: Text
 data Statement = IfStmt Expr Algo (Maybe Algo)
                | VarBind { varName :: Text, varValue :: Expr, mutable :: Bool }
                | Expr Expr
-               | ForLoop Text Expr Algo
+               | ForLoop Expr Expr Algo
                | Return Expr
                deriving Show
 

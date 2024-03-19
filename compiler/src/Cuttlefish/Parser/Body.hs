@@ -64,7 +64,7 @@ varBindP = rword hsc "let" *> do
 
 statementP :: Parser Statement
 statementP = IfStmt  <$> (rword hsc "if" *> rank3ExprP hsc) <*> algoP <*> optional (rword hsc "else" *> algoP)
-         <|> ForLoop <$> (rword hsc "for" *> identifier hsc) <*> (rword hsc "in" *> rank3ExprP hsc) <*> algoP
+         <|> ForLoop <$> (rword hsc "for" *> bindExprP) <*> (rword hsc "in" *> rank3ExprP hsc) <*> algoP
          <|> varBindP
          <|> Return  <$> (rword hsc "return" *> rank3ExprP fsc)
          <|> Expr    <$> rank3ExprP fsc
