@@ -23,9 +23,10 @@ operatorP = do
   return $ FuncCall (Reference $ [fn]) [arg1, arg2]
 
 rank1ExprP :: Parser Expr
-rank1ExprP = Reference <$> (identifier hsc `sepBy1` L.symbol hsc ".")
-          <|> literalP
-          <|> parens (rank3ExprP fsc)
+rank1ExprP = Reference <$> identifier hsc `sepBy1` L.symbol hsc "."
+         <|> Tuple <$> parens (rank3ExprP fsc `sepBy1` comma)
+         <|> literalP
+         <|> parens (rank3ExprP fsc)
 
 rank2ExprP :: Parser' Expr
 rank2ExprP sc = expr <* sc

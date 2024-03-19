@@ -32,6 +32,7 @@ data Expr = Reference       [Text]
           | Ternary         Expr Expr Expr
           | FuncCall        Expr [Expr]
           | DataConstructor Text [Expr]
+          | Tuple           [Expr]
           | IntLit          Int
           | StrLit          Text
           | CharLit         Int
