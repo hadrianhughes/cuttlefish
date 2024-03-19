@@ -42,11 +42,15 @@ rank3ExprP :: Parser' Expr
 rank3ExprP sc = try (TernaryExpr <$> rank2ExprP sc <*> (L.symbol sc "?" *> rank2ExprP sc) <*> (L.symbol sc ":" *> rank2ExprP sc))
             <|> rank2ExprP sc
 
-bindExprP :: Parser Expr
-bindExprP = ListExpr                 <$> brackets (bindExprP `sepBy` comma)
-        <|> try    (TupleExpr        <$> parens (bindExprP `sepBy1` comma))
-        <|> parens (DConstructorExpr <$> typeIdentifier hsc <*> many bindExprP)
-        <|> Reference                <$> identifier hsc `sepBy1` L.symbol hsc "."
+rank1BindP :: Parser Bind
+rank1BindP = ListBind    <$> brackets (rank2BindP `sepBy` comma)
+    <|> try (TupleBind   <$> parens (rank2BindP `sepBy1` comma))
+    <|> SimpleBind       <$> identifier hsc
+    <|> parens rank2BindP
+
+rank2BindP :: Parser Bind
+rank2BindP = try (DConstructorBind <$> typeIdentifier hsc <*> many (identifier hsc))
+         <|> rank1BindP
 
 defnP :: Parser Defn
 defnP = try (Defn <$> identifier hsc <*> many (identifier hsc) <*> (L.symbol hsc "=" *> rank3ExprP fsc))
@@ -60,11 +64,12 @@ varBindP = rword hsc "let" *> do
   mut   <- optional (rword hsc "mut")
   name  <- identifier hsc
   value <- L.symbol fsc "=" *> rank3ExprP fsc
-  return $ VarBind name value (isJust mut)
+  return $ VarDecl name value (isJust mut)
 
 statementP :: Parser Statement
-statementP = IfStmt  <$> (rword hsc "if" *> rank3ExprP hsc) <*> algoP <*> optional (rword hsc "else" *> algoP)
-         <|> ForLoop <$> (rword hsc "for" *> bindExprP) <*> (rword hsc "in" *> rank3ExprP hsc) <*> algoP
+statementP = IfStmt           <$> (rword hsc "if" *> rank3ExprP hsc) <*> algoP <*> optional (rword hsc "else" *> algoP)
+         <|> ForLoop          <$> (rword hsc "for" *> rank1BindP) <*> (rword hsc "in" *> rank3ExprP hsc) <*> algoP
          <|> varBindP
-         <|> Return  <$> (rword hsc "return" *> rank3ExprP fsc)
-         <|> Expr    <$> rank3ExprP fsc
+         <|> Return           <$> (rword hsc "return" *> rank3ExprP fsc)
+         <|> try (Destructure <$> rank2BindP <*> (L.symbol fsc "=" *> rank3ExprP fsc))
+         <|> Expr             <$> rank3ExprP fsc

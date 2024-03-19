@@ -43,7 +43,7 @@ data Expr = Reference        [Text]
 data Bind = SimpleBind       Text
           | ListBind         [Bind]
           | TupleBind        [Bind]
-          | DConstructorBind [Text]
+          | DConstructorBind Text [Text]
           deriving Show
 
 data Defn = Defn { defnName :: Text , fnArgs :: [Text] , value :: Expr }
@@ -58,9 +58,10 @@ data MembershipDefn = MembershipDefn { membType :: Text
                                      deriving Show
 
 data Statement = IfStmt Expr Algo (Maybe Algo)
-               | VarBind { varName :: Text, varValue :: Expr, mutable :: Bool }
+               | VarDecl { varName :: Text, varValue :: Expr, mutable :: Bool }
+               | Destructure Bind Expr
                | Expr Expr
-               | ForLoop Expr Expr Algo
+               | ForLoop Bind Expr Algo
                | Return Expr
                deriving Show
 
