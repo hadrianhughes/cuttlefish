@@ -17,30 +17,30 @@ literalP = IntLit   <$> integer
 
 operatorP :: Parser Expr
 operatorP = do
-  arg1 <- atomicExprP <* hsc
+  arg1 <- rank1ExprP <* hsc
   fn   <- binop <* hsc
-  arg2 <- atomicExprP
+  arg2 <- rank1ExprP
   return $ FuncCall (Reference $ [fn]) [arg1, arg2]
 
-atomicExprP :: Parser Expr
-atomicExprP = Reference <$> (identifier hsc `sepBy1` L.symbol hsc ".")
+rank1ExprP :: Parser Expr
+rank1ExprP = Reference <$> (identifier hsc `sepBy1` L.symbol hsc ".")
           <|> literalP
-          <|> parens (openExprP fsc)
+          <|> parens (rank3ExprP fsc)
 
-containedExprP :: Parser' Expr
-containedExprP sc = expr <* sc
+rank2ExprP :: Parser' Expr
+rank2ExprP sc = expr <* sc
              where
-              expr = try (ListAccess <$> atomicExprP <*> brackets (openExprP hsc))
-                 <|> try (FuncCall <$> atomicExprP <*> some atomicExprP)
+              expr = try (ListAccess <$> rank1ExprP <*> brackets (rank3ExprP hsc))
+                 <|> try (FuncCall <$> rank1ExprP <*> some rank1ExprP)
                  <|> try operatorP
-                 <|> atomicExprP
+                 <|> rank1ExprP
 
-openExprP :: Parser' Expr
-openExprP sc = try (Ternary <$> containedExprP sc <*> (L.symbol sc "?" *> containedExprP sc) <*> (L.symbol sc ":" *> containedExprP sc))
-        <|> containedExprP sc
+rank3ExprP :: Parser' Expr
+rank3ExprP sc = try (Ternary <$> rank2ExprP sc <*> (L.symbol sc "?" *> rank2ExprP sc) <*> (L.symbol sc ":" *> rank2ExprP sc))
+        <|> rank2ExprP sc
 
 defnP :: Parser Defn
-defnP = try (Defn <$> identifier hsc <*> many (identifier hsc) <*> (L.symbol hsc "=" *> openExprP fsc))
+defnP = try (Defn <$> identifier hsc <*> many (identifier hsc) <*> (L.symbol hsc "=" *> rank3ExprP fsc))
     <|> AlgoDefn <$> identifier hsc <*> many (identifier hsc) <*> algoP
 
 algoP :: Parser Algo
@@ -50,12 +50,12 @@ varBindP :: Parser Statement
 varBindP = rword hsc "let" *> do
   mut   <- optional (rword hsc "mut")
   name  <- identifier hsc
-  value <- L.symbol fsc "=" *> openExprP fsc
+  value <- L.symbol fsc "=" *> rank3ExprP fsc
   return $ VarBind name value (isJust mut)
 
 statementP :: Parser Statement
-statementP = IfStmt  <$> (rword hsc "if" *> openExprP hsc) <*> algoP <*> optional (rword hsc "else" *> algoP)
-         <|> ForLoop <$> (rword hsc "for" *> identifier hsc) <*> (rword hsc "in" *> openExprP hsc) <*> algoP
+statementP = IfStmt  <$> (rword hsc "if" *> rank3ExprP hsc) <*> algoP <*> optional (rword hsc "else" *> algoP)
+         <|> ForLoop <$> (rword hsc "for" *> identifier hsc) <*> (rword hsc "in" *> rank3ExprP hsc) <*> algoP
          <|> varBindP
-         <|> Return  <$> (rword hsc "return" *> openExprP fsc)
-         <|> Expr    <$> openExprP fsc
+         <|> Return  <$> (rword hsc "return" *> rank3ExprP fsc)
+         <|> Expr    <$> rank3ExprP fsc

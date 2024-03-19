@@ -34,42 +34,42 @@ dataConstructor = p <* fsc
   where
     p = do
       name <- typeIdentifier hsc
-      args <- many containedTypeExprP
+      args <- many rank1TypeExprP
       return (name, args)
 
-containedTypeExprP :: Parser TypeExpr
-containedTypeExprP = ListType            <$> brackets containedTypeExprP
-                <|> try (TupleType       <$> parens (containedTypeExprP `sepBy1` comma))
+rank1TypeExprP :: Parser TypeExpr
+rank1TypeExprP = ListType                <$> brackets rank1TypeExprP
+                <|> try (TupleType       <$> parens (rank1TypeExprP `sepBy1` comma))
                 <|> try (StructType      <$> braces (keyValPair `sepBy` comma))
-                <|> SetType              <$> braces containedTypeExprP
+                <|> SetType              <$> braces rank1TypeExprP
                 <|> try (TypeConstructor <$> dataConstructor `sepBy1` (L.symbol hsc "|"))
                 <|> try (PrimType        <$> primType fsc)
                 <|> TypeVar              <$> typeVariable fsc
-                <|> parens typeExprP
+                <|> parens rank2TypeExprP
                 where
                   keyValPair = do
                     key <- identifier hsc
-                    val <- L.symbol hsc ":" *> containedTypeExprP
+                    val <- L.symbol hsc ":" *> rank1TypeExprP
                     return (key, val)
 
 typeConstraintP :: Parser TypeConstraint
 typeConstraintP = TypeConstraint <$> typeIdentifier hsc <*> typeVariable fsc
 
-typeExprP :: Parser TypeExpr
-typeExprP = try (ConstraintWrap <$> ((:[]) <$> typeConstraintP <|> parens (typeConstraintP `sepBy1` comma)) <*> (L.symbol fsc "=>" *> typeExprP))
-        <|> try (FuncType <$> (containedTypeExprP <* L.symbol fsc "->") <*> typeExprP)
-        <|> containedTypeExprP
+rank2TypeExprP :: Parser TypeExpr
+rank2TypeExprP = try (ConstraintWrap <$> ((:[]) <$> typeConstraintP <|> parens (typeConstraintP `sepBy1` comma)) <*> (L.symbol fsc "=>" *> rank2TypeExprP))
+        <|> try (FuncType <$> (rank1TypeExprP <* L.symbol fsc "->") <*> rank2TypeExprP)
+        <|> rank1TypeExprP
 
 typeDefnP :: Parser TypeDefn
 typeDefnP = TypeDefn
   <$> (rword hsc "type" *> typeIdentifier hsc)
   <*> many (typeVariable hsc)
-  <*> (L.symbol fsc "=" *> typeExprP)
+  <*> (L.symbol fsc "=" *> rank2TypeExprP)
 
 typeSigP :: Parser TypeSig
 typeSigP = TypeSig
   <$> (identifier hsc <* L.symbol hsc "::")
-  <*> typeExprP
+  <*> rank2TypeExprP
 
 classDefnP :: Parser ClassDefn
 classDefnP = ClassDefn
