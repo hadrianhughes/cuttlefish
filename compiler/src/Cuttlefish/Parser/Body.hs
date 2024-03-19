@@ -42,6 +42,14 @@ rank3ExprP :: Parser' Expr
 rank3ExprP sc = try (TernaryExpr <$> rank2ExprP sc <*> (L.symbol sc "?" *> rank2ExprP sc) <*> (L.symbol sc ":" *> rank2ExprP sc))
             <|> rank2ExprP sc
 
+matchExprP :: Parser Expr
+matchExprP = MatchExpr <$> (rword hsc "match" *> identifier hsc) <*> braces (some option)
+  where
+    option = do
+      bind <- rank2BindP
+      result <- L.symbol fsc "->" *> rank3ExprP fsc <* fsc
+      return (bind, result)
+
 rank1BindP :: Parser Bind
 rank1BindP = ListBind    <$> brackets (rank2BindP `sepBy` comma)
     <|> try (TupleBind   <$> parens (rank2BindP `sepBy1` comma))
@@ -53,23 +61,22 @@ rank2BindP = try (DConstructorBind <$> typeIdentifier hsc <*> many (identifier h
          <|> rank1BindP
 
 defnP :: Parser Defn
-defnP = try (Defn <$> identifier hsc <*> many rank1BindP <*> (L.symbol hsc "=" *> rank3ExprP fsc))
+defnP = try (Defn <$> identifier hsc <*> many rank1BindP <*> (L.symbol hsc "=" *> (matchExprP <|> rank3ExprP fsc)))
     <|> AlgoDefn <$> identifier hsc <*> many rank1BindP <*> algoP
 
 algoP :: Parser Algo
 algoP = Algo <$> braces (many statementP)
 
-varBindP :: Parser Statement
-varBindP = rword hsc "let" *> do
-  mut   <- optional (rword hsc "mut")
-  name  <- identifier hsc
-  value <- L.symbol fsc "=" *> rank3ExprP fsc
-  return $ VarDecl name value (isJust mut)
-
 statementP :: Parser Statement
 statementP = IfStmt           <$> (rword hsc "if" *> rank3ExprP hsc) <*> algoP <*> optional (rword hsc "else" *> algoP)
          <|> ForLoop          <$> (rword hsc "for" *> rank1BindP) <*> (rword hsc "in" *> rank3ExprP hsc) <*> algoP
-         <|> varBindP
+         <|> varDeclP
          <|> Return           <$> (rword hsc "return" *> rank3ExprP fsc)
          <|> try (Destructure <$> rank2BindP <*> (L.symbol fsc "=" *> rank3ExprP fsc))
          <|> Expr             <$> rank3ExprP fsc
+         where
+          varDeclP = rword hsc "let" *> do
+            mut   <- optional (rword hsc "mut")
+            name  <- identifier hsc
+            value <- L.symbol fsc "=" *> (matchExprP <|> rank3ExprP fsc)
+            return $ VarDecl name value (isJust mut)

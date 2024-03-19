@@ -34,6 +34,7 @@ data Expr = Reference        [Text]
           | ListExpr         [Expr]
           | DConstructorExpr Text [Expr]
           | TupleExpr        [Expr]
+          | MatchExpr        { matchValue :: Text, cases :: [(Bind, Expr)] }
           | IntLit           Int
           | StrLit           Text
           | CharLit          Int
