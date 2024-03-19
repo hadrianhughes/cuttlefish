@@ -17,12 +17,6 @@ primType sc = Int   <$ rword sc "int"
           <|> Char  <$ rword sc "char"
           <|> Unit  <$ L.symbol sc "()"
 
-typeIdentifier :: Parser' Text
-typeIdentifier sc = (lexeme sc . try) p
-  where
-    p = fmap T.pack $ (:) <$> upperChar
-                          <*> many alphaNumChar
-
 typeVariable :: Parser' Text
 typeVariable sc = (lexeme sc . try) p
   where

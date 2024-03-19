@@ -78,6 +78,12 @@ binopChars = "&|=!><+-*/^"
 binop :: Parser Text
 binop = (L.lexeme hsc . try) (T.pack <$> some (oneOf binopChars))
 
+typeIdentifier :: Parser' Text
+typeIdentifier sc = (lexeme sc . try) p
+  where
+    p = fmap T.pack $ (:) <$> upperChar
+                          <*> many alphaNumChar
+
 identifier :: Parser () -> Parser Text
 identifier sc = (L.lexeme sc . try) (p >>= check)
   where

@@ -27,14 +27,15 @@ data ClassDefn = ClassDefn { classType :: TypeConstraint
                            , classSigs :: [TypeSig] }
                            deriving Show
 
-data Expr = Reference  [Text]
-          | ListAccess Expr Expr
-          | Ternary    Expr Expr Expr
-          | FuncCall   Expr [Expr]
-          | IntLit     Int
-          | StrLit     Text
-          | CharLit    Int
-          | FloatLit   Double
+data Expr = Reference       [Text]
+          | ListAccess      Expr Expr
+          | Ternary         Expr Expr Expr
+          | FuncCall        Expr [Expr]
+          | DataConstructor Text [Expr]
+          | IntLit          Int
+          | StrLit          Text
+          | CharLit         Int
+          | FloatLit        Double
           deriving Show
 
 data Defn = Defn { defnName :: Text , fnArgs :: [Text] , value :: Expr }

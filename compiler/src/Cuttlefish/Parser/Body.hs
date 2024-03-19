@@ -30,7 +30,8 @@ rank1ExprP = Reference <$> (identifier hsc `sepBy1` L.symbol hsc ".")
 rank2ExprP :: Parser' Expr
 rank2ExprP sc = expr <* sc
              where
-              expr = try (ListAccess <$> rank1ExprP <*> brackets (rank3ExprP hsc))
+              expr = try (DataConstructor <$> typeIdentifier hsc <*> many rank1ExprP)
+                 <|> try (ListAccess <$> rank1ExprP <*> brackets (rank3ExprP hsc))
                  <|> try (FuncCall <$> rank1ExprP <*> some rank1ExprP)
                  <|> try operatorP
                  <|> rank1ExprP
