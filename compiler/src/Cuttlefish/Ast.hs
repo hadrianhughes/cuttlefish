@@ -27,23 +27,23 @@ data ClassDefn = ClassDefn { classType :: TypeConstraint
                            , classSigs :: [TypeSig] }
                            deriving Show
 
-data Expr = Reference       [Text]
-          | ListAccess      Expr Expr
-          | Ternary         Expr Expr Expr
-          | FuncCall        Expr [Expr]
-          | List            [Expr]
-          | DataConstructor Text [Expr]
-          | Tuple           [Expr]
-          | IntLit          Int
-          | StrLit          Text
-          | CharLit         Int
-          | FloatLit        Double
+data Expr = Reference        [Text]
+          | ListAccess       Expr Expr
+          | TernaryExpr      Expr Expr Expr
+          | FuncCall         Expr [Expr]
+          | ListExpr         [Expr]
+          | DConstructorExpr Text [Expr]
+          | TupleExpr        [Expr]
+          | IntLit           Int
+          | StrLit           Text
+          | CharLit          Int
+          | FloatLit         Double
           deriving Show
 
-data Bind = Simple       Text
-          | List         [Bind]
-          | Tuple        [Bind]
-          | DConstructor [Text]
+data Bind = SimpleBind       Text
+          | ListBind         [Bind]
+          | TupleBind        [Bind]
+          | DConstructorBind [Text]
           deriving Show
 
 data Defn = Defn { defnName :: Text , fnArgs :: [Text] , value :: Expr }

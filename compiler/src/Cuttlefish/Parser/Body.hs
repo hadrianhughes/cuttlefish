@@ -24,29 +24,29 @@ operatorP = do
 
 rank1ExprP :: Parser Expr
 rank1ExprP = Reference <$> identifier hsc `sepBy1` L.symbol hsc "."
-         <|> List <$> brackets (rank3ExprP fsc `sepBy` comma)
-         <|> Tuple <$> parens (rank3ExprP fsc `sepBy1` comma)
+         <|> ListExpr  <$> brackets (rank3ExprP fsc `sepBy` comma)
+         <|> TupleExpr <$> parens (rank3ExprP fsc `sepBy1` comma)
          <|> literalP
          <|> parens (rank3ExprP fsc)
 
 rank2ExprP :: Parser' Expr
 rank2ExprP sc = expr <* sc
   where
-    expr = try (DataConstructor <$> typeIdentifier hsc <*> many rank1ExprP)
-       <|> try (ListAccess <$> rank1ExprP <*> brackets (rank3ExprP hsc))
-       <|> try (FuncCall <$> rank1ExprP <*> some rank1ExprP)
+    expr = try (DConstructorExpr <$> typeIdentifier hsc <*> many rank1ExprP)
+       <|> try (ListAccess       <$> rank1ExprP <*> brackets (rank3ExprP hsc))
+       <|> try (FuncCall         <$> rank1ExprP <*> some rank1ExprP)
        <|> try operatorP
        <|> rank1ExprP
 
 rank3ExprP :: Parser' Expr
-rank3ExprP sc = try (Ternary <$> rank2ExprP sc <*> (L.symbol sc "?" *> rank2ExprP sc) <*> (L.symbol sc ":" *> rank2ExprP sc))
+rank3ExprP sc = try (TernaryExpr <$> rank2ExprP sc <*> (L.symbol sc "?" *> rank2ExprP sc) <*> (L.symbol sc ":" *> rank2ExprP sc))
             <|> rank2ExprP sc
 
 bindExprP :: Parser Expr
-bindExprP = List                    <$> brackets (bindExprP `sepBy` comma)
-        <|> try    (Tuple           <$> parens (bindExprP `sepBy1` comma))
-        <|> parens (DataConstructor <$> typeIdentifier hsc <*> many bindExprP)
-        <|> Reference               <$> identifier hsc `sepBy1` L.symbol hsc "."
+bindExprP = ListExpr                 <$> brackets (bindExprP `sepBy` comma)
+        <|> try    (TupleExpr        <$> parens (bindExprP `sepBy1` comma))
+        <|> parens (DConstructorExpr <$> typeIdentifier hsc <*> many bindExprP)
+        <|> Reference                <$> identifier hsc `sepBy1` L.symbol hsc "."
 
 defnP :: Parser Defn
 defnP = try (Defn <$> identifier hsc <*> many (identifier hsc) <*> (L.symbol hsc "=" *> rank3ExprP fsc))
