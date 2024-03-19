@@ -30,7 +30,7 @@ data ClassDefn = ClassDefn { classType :: TypeConstraint
 data Expr = Reference  [Text]
           | ListAccess Expr Expr
           | Ternary    Expr Expr Expr
-          | FuncCall   Text [Expr]
+          | FuncCall   Expr [Expr]
           | IntLit     Int
           | StrLit     Text
           | CharLit    Int

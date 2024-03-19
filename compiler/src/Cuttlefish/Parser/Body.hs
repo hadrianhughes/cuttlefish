@@ -20,7 +20,7 @@ operatorP = do
   arg1 <- atomicExprP <* hsc
   fn   <- binop <* hsc
   arg2 <- atomicExprP
-  return $ FuncCall fn [arg1, arg2]
+  return $ FuncCall (Reference $ [fn]) [arg1, arg2]
 
 atomicExprP :: Parser Expr
 atomicExprP = Reference <$> (identifier hsc `sepBy1` L.symbol hsc ".")
@@ -31,7 +31,7 @@ containedExprP :: Parser' Expr
 containedExprP sc = expr <* sc
              where
               expr = try (ListAccess <$> atomicExprP <*> brackets (openExprP hsc))
-                 <|> try (FuncCall <$> identifier hsc <*> some atomicExprP)
+                 <|> try (FuncCall <$> atomicExprP <*> some atomicExprP)
                  <|> try operatorP
                  <|> atomicExprP
 
