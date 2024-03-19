@@ -31,16 +31,22 @@ rank1ExprP = Reference <$> identifier hsc `sepBy1` L.symbol hsc "."
 
 rank2ExprP :: Parser' Expr
 rank2ExprP sc = expr <* sc
-             where
-              expr = try (DataConstructor <$> typeIdentifier hsc <*> many rank1ExprP)
-                 <|> try (ListAccess <$> rank1ExprP <*> brackets (rank3ExprP hsc))
-                 <|> try (FuncCall <$> rank1ExprP <*> some rank1ExprP)
-                 <|> try operatorP
-                 <|> rank1ExprP
+  where
+    expr = try (DataConstructor <$> typeIdentifier hsc <*> many rank1ExprP)
+       <|> try (ListAccess <$> rank1ExprP <*> brackets (rank3ExprP hsc))
+       <|> try (FuncCall <$> rank1ExprP <*> some rank1ExprP)
+       <|> try operatorP
+       <|> rank1ExprP
 
 rank3ExprP :: Parser' Expr
 rank3ExprP sc = try (Ternary <$> rank2ExprP sc <*> (L.symbol sc "?" *> rank2ExprP sc) <*> (L.symbol sc ":" *> rank2ExprP sc))
-        <|> rank2ExprP sc
+            <|> rank2ExprP sc
+
+bindExprP :: Parser Expr
+bindExprP = List            <$> brackets (bindExprP `sepBy` comma)
+        <|> Tuple           <$> parens (bindExprP `sepBy1` comma)
+        <|> DataConstructor <$> typeIdentifier hsc <*> many bindExprP
+        <|> Reference       <$> identifier hsc `sepBy1` L.symbol hsc "."
 
 defnP :: Parser Defn
 defnP = try (Defn <$> identifier hsc <*> many (identifier hsc) <*> (L.symbol hsc "=" *> rank3ExprP fsc))
