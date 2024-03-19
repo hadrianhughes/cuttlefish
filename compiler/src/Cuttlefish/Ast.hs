@@ -31,6 +31,7 @@ data Expr = Reference       [Text]
           | ListAccess      Expr Expr
           | Ternary         Expr Expr Expr
           | FuncCall        Expr [Expr]
+          | List            [Expr]
           | DataConstructor Text [Expr]
           | Tuple           [Expr]
           | IntLit          Int

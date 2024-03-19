@@ -24,6 +24,7 @@ operatorP = do
 
 rank1ExprP :: Parser Expr
 rank1ExprP = Reference <$> identifier hsc `sepBy1` L.symbol hsc "."
+         <|> List <$> brackets (rank3ExprP fsc `sepBy` comma)
          <|> Tuple <$> parens (rank3ExprP fsc `sepBy1` comma)
          <|> literalP
          <|> parens (rank3ExprP fsc)
