@@ -43,10 +43,10 @@ rank3ExprP sc = try (Ternary <$> rank2ExprP sc <*> (L.symbol sc "?" *> rank2Expr
             <|> rank2ExprP sc
 
 bindExprP :: Parser Expr
-bindExprP = List            <$> brackets (bindExprP `sepBy` comma)
-        <|> Tuple           <$> parens (bindExprP `sepBy1` comma)
-        <|> DataConstructor <$> typeIdentifier hsc <*> many bindExprP
-        <|> Reference       <$> identifier hsc `sepBy1` L.symbol hsc "."
+bindExprP = List                    <$> brackets (bindExprP `sepBy` comma)
+        <|> try    (Tuple           <$> parens (bindExprP `sepBy1` comma))
+        <|> parens (DataConstructor <$> typeIdentifier hsc <*> many bindExprP)
+        <|> Reference               <$> identifier hsc `sepBy1` L.symbol hsc "."
 
 defnP :: Parser Defn
 defnP = try (Defn <$> identifier hsc <*> many (identifier hsc) <*> (L.symbol hsc "=" *> rank3ExprP fsc))
