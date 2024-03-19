@@ -46,8 +46,8 @@ data Bind = SimpleBind       Text
           | DConstructorBind Text [Text]
           deriving Show
 
-data Defn = Defn { defnName :: Text , fnArgs :: [Text] , value :: Expr }
-          | AlgoDefn { defnName :: Text , fnArgs :: [Text] , algo :: Algo }
+data Defn = Defn { defnName :: Text , fnArgs :: [Bind] , value :: Expr }
+          | AlgoDefn { defnName :: Text , fnArgs :: [Bind] , algo :: Algo }
           deriving Show
 
 data Algo = Algo [Statement] deriving Show

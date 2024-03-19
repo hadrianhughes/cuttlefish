@@ -53,8 +53,8 @@ rank2BindP = try (DConstructorBind <$> typeIdentifier hsc <*> many (identifier h
          <|> rank1BindP
 
 defnP :: Parser Defn
-defnP = try (Defn <$> identifier hsc <*> many (identifier hsc) <*> (L.symbol hsc "=" *> rank3ExprP fsc))
-    <|> AlgoDefn <$> identifier hsc <*> many (identifier hsc) <*> algoP
+defnP = try (Defn <$> identifier hsc <*> many rank1BindP <*> (L.symbol hsc "=" *> rank3ExprP fsc))
+    <|> AlgoDefn <$> identifier hsc <*> many rank1BindP <*> algoP
 
 algoP :: Parser Algo
 algoP = Algo <$> braces (many statementP)
