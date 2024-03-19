@@ -4,5 +4,4 @@ The language will not necessarily be called Cuttlefish--I just needed a repo nam
 
 ## Next
 
-- Create a separate AST entity for bind expressions
-- Finish destructuring tuples and constructors
+- Write up the grammar using EBNF
