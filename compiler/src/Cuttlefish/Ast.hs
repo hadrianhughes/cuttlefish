@@ -40,6 +40,12 @@ data Expr = Reference       [Text]
           | FloatLit        Double
           deriving Show
 
+data Bind = Simple       Text
+          | List         [Bind]
+          | Tuple        [Bind]
+          | DConstructor [Text]
+          deriving Show
+
 data Defn = Defn { defnName :: Text , fnArgs :: [Text] , value :: Expr }
           | AlgoDefn { defnName :: Text , fnArgs :: [Text] , algo :: Algo }
           deriving Show
