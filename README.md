@@ -4,5 +4,5 @@ The language will not necessarily be called Cuttlefish--I just needed a repo nam
 
 ## Next
 
-- Set up union/enum for constructor type
-- Enable destructuring tuples and constructors
+- Create a separate AST entity for bind expressions
+- Finish destructuring tuples and constructors
