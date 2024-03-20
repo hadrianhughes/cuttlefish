@@ -16,6 +16,19 @@ data TypeExpr = FuncType    TypeExpr TypeExpr
 
 data TypeConstraint = TypeConstraint Text Text deriving Show
 
+data Expr = VarRef      [Text]
+          | ListAccess  Expr Expr
+          | TernaryExpr Expr Expr Expr
+          | FuncCall    Expr [Expr]
+          | ListExpr    [Expr]
+          | TupleExpr   [Expr]
+          | MatchExpr   Text [(Bind, Expr)]
+          | IntLit      Int
+          | CharLit     Char
+          | FloatLit    Double
+          | UnitLit
+          deriving Show
+
 data FuncDefn = FuncDefn { funcName        :: Text
                          , funcType        :: TypeExpr
                          , funcConstraints :: [TypeConstraint]
