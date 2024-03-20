@@ -20,7 +20,7 @@ operatorP = do
   arg1 <- rank1ExprP <* hsc
   fn   <- binop <* hsc
   arg2 <- rank1ExprP
-  return $ FuncCall (Reference $ [fn]) [arg1, arg2]
+  return $ FuncCall (Reference [fn]) [arg1, arg2]
 
 rank1ExprP :: Parser Expr
 rank1ExprP = Reference <$> identifier hsc `sepBy1` L.symbol hsc "."
