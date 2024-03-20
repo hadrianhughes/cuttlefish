@@ -4,4 +4,4 @@ The language will not necessarily be called Cuttlefish--I just needed a repo nam
 
 ## Next
 
-- Write up the grammar using EBNF
+- Finish constructing the new AST
