@@ -40,9 +40,12 @@ data FuncDefn = FuncDefn { funcName        :: Text
                          , funcBody        :: Expr
                          , funcIsAlgo      :: Bool } deriving Show
 
-data ConstDefn = { constName  :: Text
-                 , constValue :: Expr
-                 , constType  :: Maybe TypeExpr } deriving Show
+data ConstDefn = ConstDefn { constName  :: Text
+                           , constValue :: Expr
+                           , constType  :: Maybe TypeExpr } deriving Show
+
+data ClassDefn = ClassDefn { classBind :: Bind
+                           , classSigs :: [(Text, TypeExpr)] } deriving Show
 
 data Program = Program
   { funcDefns   :: [FuncDefn]
