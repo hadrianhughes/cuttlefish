@@ -28,6 +28,9 @@ brackets = between (symbol "[") (symbol "]")
 braces :: Parser a -> Parser a
 braces = between (symbol "{") (symbol "}")
 
+angles :: Parser a -> Parser a
+angles = between (symbol "<") (symbol ">")
+
 squotes :: Parser a -> Parser a
 squotes = between (symbol "'") (symbol "'")
 
@@ -42,6 +45,9 @@ dot = void $ symbol "."
 
 colon :: Parser ()
 colon = void $ symbol ":"
+
+pipe :: Parser ()
+pipe = void $ symbol "|"
 
 rword :: Text -> Parser ()
 rword w = (lexeme . try) (string w *> notFollowedBy alphaNumChar)
@@ -66,3 +72,15 @@ rws =
 
 binopChars :: [Char]
 binopChars = "&|=!><+-*/^"
+
+typeIdentifier :: Parser Text
+typeIdentifier = (lexeme sc . try) p
+  where
+    p = fmap T.pack $ (:) <$> upperChar
+                          <*> many alphaNumChar
+
+identifier :: Parser Text
+identifier = (lexeme sc . try) p
+  where
+    p = fmap T.pack $ (:) <$> lowerChar
+                          <*> many alphaNumChar
