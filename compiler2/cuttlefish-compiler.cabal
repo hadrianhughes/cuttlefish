@@ -26,6 +26,8 @@ library
   exposed-modules:
     Cuttlefish
     Cuttlefish.Ast
+    Cuttlefish.Parser
+    Cuttlefish.Parser.Core
   hs-source-dirs:
     src
   build-depends:
