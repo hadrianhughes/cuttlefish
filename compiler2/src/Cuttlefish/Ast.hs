@@ -47,6 +47,10 @@ data ConstDefn = ConstDefn { constName  :: Text
 data ClassDefn = ClassDefn { classBind :: Bind
                            , classSigs :: [(Text, TypeExpr)] } deriving Show
 
+data MembershipDefn = MembershipDefn { membType  :: Text
+                                     , membClass :: Text
+                                     , membDefns :: FuncDefn } deriving Show
+
 data Program = Program
   { funcDefns   :: [FuncDefn]
   , valDefns    :: [ConstDefn]
