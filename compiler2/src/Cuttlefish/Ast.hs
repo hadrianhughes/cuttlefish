@@ -56,4 +56,4 @@ data Program = Program
   , valDefns    :: [ConstDefn]
   , typeDefns   :: [TypeDefn]
   , classDefns  :: [ClassDefn]
-  , memberships :: [Membership] } deriving Show
+  , memberships :: [MembershipDefn] } deriving Show
