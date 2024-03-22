@@ -51,6 +51,11 @@ data MembershipDefn = MembershipDefn { membType  :: Text
                                      , membClass :: Text
                                      , membDefns :: FuncDefn } deriving Show
 
+data Bind = SimpleBind      Text
+          | TupleBind       [Bind]
+          | ConstructorBind Text [Text]
+          deriving Show
+
 data Program = Program
   { funcDefns   :: [FuncDefn]
   , valDefns    :: [ConstDefn]
