@@ -1,5 +1,15 @@
 module Cuttlefish.Parser.Types where
 
+import           Text.Megaparsec
+import           Text.Megaparsec.Char
+import qualified Text.Megaparsec.Char.Lexer as L
+import           Data.Text ( Text )
+import qualified Data.Text                  as T
+import           Control.Monad ( void )
+import           Cuttlefish.Ast
+import           Cuttlefish.Parser.Core
+import           Cuttlefish.Parser.Body
+
 primTypeP :: Parser PrimType
 primTypeP = Int   <$ rword "int"
         <|> Float <$ rword "float"

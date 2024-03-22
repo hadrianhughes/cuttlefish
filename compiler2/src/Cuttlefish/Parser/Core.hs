@@ -1,5 +1,16 @@
 module Cuttlefish.Parser.Core where
 
+import           Data.Char
+import           Text.Megaparsec
+import           Text.Megaparsec.Char
+import qualified Text.Megaparsec.Char.Lexer as L
+import           Data.Text ( Text )
+import qualified Data.Text                  as T
+import           Control.Monad ( void )
+import           Data.Void
+import           Data.String.Conversions
+import           Cuttlefish.Ast
+
 type Parser = Parsec Void Text
 
 sc :: Parser ()
