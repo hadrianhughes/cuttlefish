@@ -21,16 +21,18 @@ data TypeDefn = TypeDefn { typeName :: Text
                          , typeVars :: [TypeVarDefn]
                          , typeExpr :: TypeExpr } deriving Show
 
-data Expr = VarRef      [Text]
-          | ListAccess  Expr Expr
-          | TernaryExpr Expr Expr Expr
-          | FuncCall    Expr [Expr]
-          | ListExpr    [Expr]
-          | TupleExpr   [Expr]
-          | MatchExpr   Text [(Bind, Expr)]
-          | IntLit      Int
-          | CharLit     Char
-          | FloatLit    Double
+data Expr = VarRef       Text
+          | ListAccess   Expr Expr
+          | StructAccess Expr Text
+          | TernaryExpr  Expr Expr Expr
+          | FuncCall     Expr [Expr]
+          | ListExpr     [Expr]
+          | TupleExpr    [Expr]
+          | MatchExpr    Text [(Bind, Expr)]
+          | IntLit       Int
+          | CharLit      Char
+          | StrLit       Text
+          | FloatLit     Double
           | UnitLit
           deriving Show
 
@@ -42,8 +44,8 @@ data FuncDefn = FuncDefn { funcName        :: Text
                          , funcIsAlgo      :: Bool } deriving Show
 
 data ConstDefn = ConstDefn { constName  :: Text
-                           , constValue :: Expr
-                           , constType  :: Maybe TypeExpr } deriving Show
+                           , constType  :: Maybe TypeExpr
+                           , constValue :: Expr } deriving Show
 
 data ClassDefn = ClassDefn { classBind :: Bind
                            , classSigs :: [(Text, TypeExpr)] } deriving Show
@@ -57,4 +59,4 @@ data Bind = SimpleBind      Text
           | ConstructorBind Text [Text]
           deriving Show
 
-data Program = Program [TypeDefn] deriving Show
+data Program = Program [TypeDefn] [ConstDefn] deriving Show
