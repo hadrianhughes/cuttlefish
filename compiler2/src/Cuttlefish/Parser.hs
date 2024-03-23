@@ -20,7 +20,7 @@ programRootsP :: Parser [ProgramRoot]
 programRootsP = many $
                 try (RTypeDefn  <$> typeDefnP)
             <|> try (RConstDefn <$> constDefnP)
-            <|> try (RFuncDefn  <$> funcDefnP)
+            <|> try (RFuncDefn  <$> (try funcDefnP <|> funcDefnP'))
 
 typeDefns :: [ProgramRoot] -> [TypeDefn]
 typeDefns r = [td | RTypeDefn td <- r]
