@@ -1,4 +1,4 @@
-module Cuttlefish.Parser.Body where
+module Cuttlefish.Parser.Expr where
 
 import Data.Char
 import Text.Megaparsec

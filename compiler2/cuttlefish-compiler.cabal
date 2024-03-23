@@ -27,7 +27,7 @@ library
     Cuttlefish
     Cuttlefish.Ast
     Cuttlefish.Parser
-    Cuttlefish.Parser.Body
+    Cuttlefish.Parser.Expr
     Cuttlefish.Parser.Core
     Cuttlefish.Parser.Types
   hs-source-dirs:
