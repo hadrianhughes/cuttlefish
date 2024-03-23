@@ -14,10 +14,11 @@ data TypeExpr = FuncType    TypeExpr TypeExpr
               | PrimType    PrimType
               deriving Show
 
-data TypeConstraint = TypeConstraint Text Text deriving Show
+data TypeVarDefn = TypeVarDefn { varClass :: Maybe Text
+                               , varName  :: Text } deriving Show
 
 data TypeDefn = TypeDefn { typeName :: Text
-                         , typeConstraints :: [TypeConstraint]
+                         , typeVars :: [TypeVarDefn]
                          , typeExpr :: TypeExpr } deriving Show
 
 data Expr = VarRef      [Text]
@@ -35,7 +36,7 @@ data Expr = VarRef      [Text]
 
 data FuncDefn = FuncDefn { funcName        :: Text
                          , funcType        :: TypeExpr
-                         , funcConstraints :: [TypeConstraint]
+                         , funcTypeVars    :: [TypeVarDefn]
                          , funcArgs        :: [Bind]
                          , funcBody        :: Expr
                          , funcIsAlgo      :: Bool } deriving Show
