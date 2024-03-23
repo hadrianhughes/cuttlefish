@@ -31,31 +31,13 @@ structAccessP = chain
   (dot *> identifier)
   StructAccess
 
-methodCallP = chain
-  (try itemFieldAccess <|> structAccessP)
-  (parens $ allExprP `sepBy` comma)
-  FuncCall
-
-itemFieldAccess = chain
-  listAccessP
-  (dot *> identifier)
-  StructAccess
-
-itemFuncCall = chain
-  listAccessP
-  (parens $ allExprP `sepBy` comma)
-  FuncCall
-
 ternaryP :: Parser Expr
 ternaryP = TernaryExpr
        <$> nestedExpr
        <*> (symbol "?" *> nestedExpr)
        <*> (symbol ":" *> nestedExpr)
        where
-        nestedExpr = try itemFuncCall
-                 <|> try funcCallP
-                 <|> try methodCallP
-                 <|> try itemFieldAccess
+        nestedExpr = try funcCallP
                  <|> try listAccessP
                  <|> try structAccessP
                  <|> parens ternaryP
@@ -68,10 +50,7 @@ exprP = ListExpr  <$> brackets (exprP `sepBy` comma)
     <|> literalP
 
 allExprP :: Parser Expr
-allExprP = try itemFuncCall
-       <|> try methodCallP
-       <|> try itemFieldAccess
-       <|> try listAccessP
+allExprP = try listAccessP
        <|> try structAccessP
        <|> try funcCallP
        <|> try ternaryP
