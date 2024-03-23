@@ -9,6 +9,24 @@ import Cuttlefish.Ast
 import Cuttlefish.Parser.Core
 import Cuttlefish.Parser.Types
 
+chainAcc :: Expr -> ChainTerm -> Expr
+chainAcc e c =
+  case c of
+    (StructTerm field) -> StructAccess e field
+    (ListTerm index)   -> ListAccess e index
+    (FuncTerm args)    -> FuncCall e args
+
+chainExprP :: Parser Expr
+chainExprP = do
+  start <- try exprP <|> parens chainExprP
+  terms <- many term
+  return $ foldl chainAcc start terms
+  where
+    term :: Parser ChainTerm
+    term = StructTerm   <$> (dot *> identifier)
+       <|> ListTerm     <$> brackets (chainExprP <|> exprP)
+       <|> FuncTerm     <$> (parens $ (chainExprP <|> exprP) `sepBy` comma)
+
 literalP :: Parser Expr
 literalP = try (FloatLit <$> float)
        <|> IntLit   <$> int
@@ -16,32 +34,13 @@ literalP = try (FloatLit <$> float)
        <|> StrLit   <$> dquotes (takeWhileP Nothing (/= '"'))
        <|> (symbol "()" *> return UnitLit)
 
-funcCallP = chain
-  (parens listAccessP <|> exprP)
-  (parens $ allExprP `sepBy` comma)
-  FuncCall
-
-listAccessP = chain
-  (try structAccessP <|> try funcCallP <|> exprP)
-  (brackets allExprP)
-  ListAccess
-
-structAccessP = chain
-  (try funcCallP <|> parens listAccessP <|> exprP)
-  (dot *> identifier)
-  StructAccess
-
 ternaryP :: Parser Expr
 ternaryP = TernaryExpr
        <$> nestedExpr
        <*> (symbol "?" *> nestedExpr)
        <*> (symbol ":" *> nestedExpr)
        where
-        nestedExpr = try funcCallP
-                 <|> try listAccessP
-                 <|> try structAccessP
-                 <|> parens ternaryP
-                 <|> exprP
+        nestedExpr = chainExprP <|> exprP
 
 exprP :: Parser Expr
 exprP = ListExpr  <$> brackets (exprP `sepBy` comma)
@@ -49,15 +48,8 @@ exprP = ListExpr  <$> brackets (exprP `sepBy` comma)
     <|> VarRef    <$> identifier
     <|> literalP
 
-allExprP :: Parser Expr
-allExprP = try listAccessP
-       <|> try structAccessP
-       <|> try funcCallP
-       <|> try ternaryP
-       <|> exprP
-
 constDefnP :: Parser ConstDefn
 constDefnP = ConstDefn
   <$> (rword "let" *> identifier)
   <*> optional (symbol ":" *> openTypeExprP)
-  <*> (symbol "=" *> (try ternaryP <|> allExprP))
+  <*> (symbol "=" *> (try ternaryP <|> chainExprP <|> exprP))
