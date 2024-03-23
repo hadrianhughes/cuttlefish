@@ -4,4 +4,5 @@ The language will not necessarily be called Cuttlefish--I just needed a repo nam
 
 ## Next
 
-- Finish constructing the new AST
+- Implement statements
+- Implement imperative function definitions
