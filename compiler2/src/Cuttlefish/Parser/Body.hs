@@ -19,13 +19,13 @@ literalP = try (FloatLit <$> float)
 funcCallP :: Parser Expr
 funcCallP = do
   first <- exprP
-  calls <- some $ parens ((try listAccessP <|> try funcCallP <|> exprP) `sepBy` comma)
+  calls <- some $ parens (allExprP `sepBy` comma)
   return $ foldl FuncCall first calls
 
 listAccessP :: Parser Expr
 listAccessP = do
   first <- try funcCallP <|> exprP
-  indices <- some $ brackets (try listAccessP <|> try funcCallP <|> exprP)
+  indices <- some $ brackets allExprP
   return $ foldl ListAccess first indices
 
 exprP :: Parser Expr
@@ -34,10 +34,11 @@ exprP = ListExpr  <$> brackets (exprP `sepBy` comma)
     <|> VarRef    <$> identifier
     <|> literalP
 
+allExprP :: Parser Expr
+allExprP = try listAccessP <|> try funcCallP <|> exprP
+
 constDefnP :: Parser ConstDefn
 constDefnP = ConstDefn
   <$> (rword "let" *> identifier)
   <*> optional (symbol ":" *> openTypeExprP)
-  <*> (symbol "=" *> exprP')
-  where
-    exprP' = try listAccessP <|> try funcCallP <|> exprP
+  <*> (symbol "=" *> allExprP)
