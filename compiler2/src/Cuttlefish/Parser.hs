@@ -6,18 +6,21 @@ module Cuttlefish.Parser
 where
 
 import Text.Megaparsec
-import Cuttlefish.Parser.Expr
 import Cuttlefish.Parser.Core
+import Cuttlefish.Parser.Expr
+import Cuttlefish.Parser.Func
 import Cuttlefish.Parser.Types
 import Cuttlefish.Ast
 
 data ProgramRoot = RTypeDefn  TypeDefn
                  | RConstDefn ConstDefn
+                 | RFuncDefn  FuncDefn
 
 programRootsP :: Parser [ProgramRoot]
 programRootsP = many $
                 try (RTypeDefn  <$> typeDefnP)
             <|> try (RConstDefn <$> constDefnP)
+            <|> try (RFuncDefn  <$> funcDefnP)
 
 typeDefns :: [ProgramRoot] -> [TypeDefn]
 typeDefns r = [td | RTypeDefn td <- r]
@@ -25,9 +28,13 @@ typeDefns r = [td | RTypeDefn td <- r]
 constDefns :: [ProgramRoot] -> [ConstDefn]
 constDefns r = [c | RConstDefn c <- r]
 
+funcDefns :: [ProgramRoot] -> [FuncDefn]
+funcDefns r = [f | RFuncDefn f <- r]
+
 programP :: Parser Program
 programP = between sc eof $ do
   roots <- programRootsP
   return $ Program
     (typeDefns roots)
     (constDefns roots)
+    (funcDefns roots)

@@ -79,7 +79,8 @@ rws =
   , "class"
   , "member"
   , "return"
-  , "match" ]
+  , "match"
+  , "func" ]
 
 binopChars :: [Char]
 binopChars = "&|=!><+-*/^"

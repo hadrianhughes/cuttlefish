@@ -40,12 +40,11 @@ data ChainTerm = StructTerm Text
                | ListTerm   Expr
                | FuncTerm   [Expr]
 
-data FuncDefn = FuncDefn { funcName        :: Text
-                         , funcType        :: TypeExpr
-                         , funcTypeVars    :: [TypeVarDefn]
-                         , funcArgs        :: [Bind]
-                         , funcBody        :: Expr
-                         , funcIsAlgo      :: Bool } deriving Show
+data FuncDefn = FuncDefn { funcName     :: Text
+                         , funcType     :: TypeExpr
+                         , funcTypeVars :: [TypeVarDefn]
+                         , funcArgs     :: [Bind]
+                         , funcBody     :: Expr } deriving Show
 
 data ConstDefn = ConstDefn { constName  :: Text
                            , constType  :: Maybe TypeExpr
@@ -63,4 +62,8 @@ data Bind = SimpleBind      Text
           | ConstructorBind Text [Text]
           deriving Show
 
-data Program = Program [TypeDefn] [ConstDefn] deriving Show
+data Program = Program
+  [TypeDefn]
+  [ConstDefn]
+  [FuncDefn]
+  deriving Show
