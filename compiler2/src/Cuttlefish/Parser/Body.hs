@@ -22,6 +22,12 @@ funcCallP = do
   calls <- some $ parens ((try listAccessP <|> try funcCallP <|> exprP) `sepBy` comma)
   return $ foldl FuncCall first calls
 
+listAccessP :: Parser Expr
+listAccessP = do
+  first <- try funcCallP <|> exprP
+  indices <- some $ brackets (try listAccessP <|> try funcCallP <|> exprP)
+  return $ foldl ListAccess first indices
+
 exprP :: Parser Expr
 exprP = ListExpr  <$> brackets (exprP `sepBy` comma)
     <|> TupleExpr <$> parens (exprP `sepBy` comma)
@@ -34,4 +40,4 @@ constDefnP = ConstDefn
   <*> optional (symbol ":" *> openTypeExprP)
   <*> (symbol "=" *> exprP')
   where
-    exprP' = try funcCallP <|> exprP
+    exprP' = try listAccessP <|> try funcCallP <|> exprP
