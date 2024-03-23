@@ -22,7 +22,7 @@ funcCallP = chain
   FuncCall
 
 listAccessP = chain
-  (try funcCallP <|> try structAccessP <|> exprP)
+  (try structAccessP <|> try funcCallP <|> exprP)
   (brackets allExprP)
   ListAccess
 
@@ -33,14 +33,21 @@ structAccessP = chain
 
 methodCallP = chain
   structAccessP
-  (parens (allExprP `sepBy` comma))
+  (parens $ allExprP `sepBy` comma)
   FuncCall
 
 ternaryP :: Parser Expr
 ternaryP = TernaryExpr
-       <$> allExprP
-       <*> (symbol "?" *> allExprP)
-       <*> (symbol ":" *> allExprP)
+       <$> nestedExpr
+       <*> (symbol "?" *> nestedExpr)
+       <*> (symbol ":" *> nestedExpr)
+       where
+        nestedExpr = try funcCallP
+                 <|> try listAccessP
+                 <|> try structAccessP
+                 <|> try methodCallP
+                 <|> parens ternaryP
+                 <|> exprP
 
 exprP :: Parser Expr
 exprP = ListExpr  <$> brackets (exprP `sepBy` comma)
@@ -53,7 +60,7 @@ allExprP = try listAccessP
        <|> try methodCallP
        <|> try structAccessP
        <|> try funcCallP
-       <|> try (parens ternaryP)
+       <|> try ternaryP
        <|> exprP
 
 constDefnP :: Parser ConstDefn
