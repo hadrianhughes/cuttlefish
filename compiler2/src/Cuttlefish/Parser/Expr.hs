@@ -48,6 +48,11 @@ exprP = ListExpr  <$> brackets (exprP `sepBy` comma)
     <|> VarRef    <$> identifier
     <|> literalP
 
+bindP :: Parser Bind
+bindP = try (TupleBind <$> parens (bindP `sepBy1` comma))
+    <|> ConstructorBind <$> typeIdentifier <*> parens (identifier `sepBy1` comma)
+    <|> SimpleBind <$> identifier
+
 constDefnP :: Parser ConstDefn
 constDefnP = ConstDefn
   <$> (rword "let" *> identifier)

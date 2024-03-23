@@ -8,12 +8,6 @@ import Cuttlefish.Parser.Core
 import Cuttlefish.Parser.Expr
 import Cuttlefish.Parser.Types
 
-argP :: Parser (Text, TypeExpr)
-argP = do
-  name <- identifier
-  typ  <- colon *> openTypeExprP
-  return (name, typ)
-
 funcDefnP :: Parser FuncDefn
 funcDefnP = do
   name     <- rword "func" *> identifier
@@ -29,17 +23,21 @@ funcDefnP = do
     name
     funcType
     typeVars'
-    (map (\(name, _) -> SimpleBind name) args)
+    (map fst args)
     body
   where
-    argFold :: (Text, TypeExpr) -> TypeExpr -> TypeExpr
+    argFold :: (a, TypeExpr) -> TypeExpr -> TypeExpr
     argFold = \(_, t1) t2 -> FuncType t1 t2
+    argP = do
+      name <- bindP
+      typ  <- colon *> openTypeExprP
+      return (name, typ)
 
 funcDefnP' :: Parser FuncDefn
 funcDefnP' = do
-  (name, funcType) <- rword "func" *> parens argP
+  (name, funcType) <- rword "func" *> parens nameTypeP
   typeVars         <- optional (angles $ some typeVarDefnP)
-  args             <- parens (identifier `sepBy` comma)
+  args             <- parens (bindP `sepBy` comma)
   body             <- symbol "=" *> (try chainExprP <|> exprP)
 
   let typeVars' = maybeList typeVars
@@ -48,5 +46,10 @@ funcDefnP' = do
     name
     funcType
     typeVars'
-    (map SimpleBind args)
+    args
     body
+  where
+    nameTypeP = do
+      name <- identifier
+      typ  <- colon *> openTypeExprP
+      return (name, typ)
