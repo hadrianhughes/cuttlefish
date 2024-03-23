@@ -28,6 +28,12 @@ listAccessP = do
   indices <- some $ brackets allExprP
   return $ foldl ListAccess first indices
 
+ternaryP :: Parser Expr
+ternaryP = TernaryExpr
+       <$> allExprP
+       <*> (symbol "?" *> allExprP)
+       <*> (symbol ":" *> allExprP)
+
 exprP :: Parser Expr
 exprP = ListExpr  <$> brackets (exprP `sepBy` comma)
     <|> TupleExpr <$> parens (exprP `sepBy` comma)
@@ -35,10 +41,13 @@ exprP = ListExpr  <$> brackets (exprP `sepBy` comma)
     <|> literalP
 
 allExprP :: Parser Expr
-allExprP = try listAccessP <|> try funcCallP <|> exprP
+allExprP = try listAccessP
+       <|> try funcCallP
+       <|> try (parens ternaryP)
+       <|> exprP
 
 constDefnP :: Parser ConstDefn
 constDefnP = ConstDefn
   <$> (rword "let" *> identifier)
   <*> optional (symbol ":" *> openTypeExprP)
-  <*> (symbol "=" *> allExprP)
+  <*> (symbol "=" *> try ternaryP <|> allExprP)
