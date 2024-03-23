@@ -99,3 +99,9 @@ identifier = (lexeme . try) p
 maybeList :: Maybe [a] -> [a]
 maybeList (Just xs) = xs
 maybeList Nothing   = []
+
+chain :: Parser a -> Parser b -> (a -> b -> a) -> Parser a
+chain firstP itemP constructor = do
+  first <- firstP
+  items <- some itemP
+  return $ foldl constructor first items

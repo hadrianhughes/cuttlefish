@@ -16,32 +16,25 @@ literalP = try (FloatLit <$> float)
        <|> StrLit   <$> dquotes (takeWhileP Nothing (/= '"'))
        <|> (symbol "()" *> return UnitLit)
 
-funcCallP :: Parser Expr
-funcCallP = do
-  first <- parens listAccessP <|> exprP
-  calls <- some $ parens (allExprP `sepBy` comma)
-  return $ foldl FuncCall first calls
+funcCallP = chain
+  (parens listAccessP <|> exprP)
+  (parens $ allExprP `sepBy` comma)
+  FuncCall
 
-listAccessP :: Parser Expr
-listAccessP = do
-  first <- try funcCallP <|> try structAccessP <|> exprP
-  indices <- some $ brackets allExprP
-  return $ foldl ListAccess first indices
+listAccessP = chain
+  (try funcCallP <|> try structAccessP <|> exprP)
+  (brackets allExprP)
+  ListAccess
 
-structAccessP :: Parser Expr
-structAccessP = do
-  first <- try funcCallP <|> parens listAccessP <|> exprP
-  accessors <- some $ dot *> identifier
-  return $ foldl StructAccess first accessors
+structAccessP = chain
+  (try funcCallP <|> parens listAccessP <|> exprP)
+  (dot *> identifier)
+  StructAccess
 
-methodCallP :: Parser Expr
-methodCallP = do
-  first <- try funcCallP <|> parens listAccessP <|> exprP
-  accessors <- some $ dot *> identifier
-  let field = foldl StructAccess first accessors
-
-  calls <- some $ parens (allExprP `sepBy` comma)
-  return $ foldl FuncCall field calls
+methodCallP = chain
+  structAccessP
+  (parens (allExprP `sepBy` comma))
+  FuncCall
 
 ternaryP :: Parser Expr
 ternaryP = TernaryExpr
