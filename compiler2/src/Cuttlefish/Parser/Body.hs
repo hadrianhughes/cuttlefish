@@ -18,15 +18,30 @@ literalP = try (FloatLit <$> float)
 
 funcCallP :: Parser Expr
 funcCallP = do
-  first <- exprP
+  first <- parens listAccessP <|> exprP
   calls <- some $ parens (allExprP `sepBy` comma)
   return $ foldl FuncCall first calls
 
 listAccessP :: Parser Expr
 listAccessP = do
-  first <- try funcCallP <|> exprP
+  first <- try funcCallP <|> try structAccessP <|> exprP
   indices <- some $ brackets allExprP
   return $ foldl ListAccess first indices
+
+structAccessP :: Parser Expr
+structAccessP = do
+  first <- try funcCallP <|> parens listAccessP <|> exprP
+  accessors <- some $ dot *> identifier
+  return $ foldl StructAccess first accessors
+
+methodCallP :: Parser Expr
+methodCallP = do
+  first <- try funcCallP <|> parens listAccessP <|> exprP
+  accessors <- some $ dot *> identifier
+  let field = foldl StructAccess first accessors
+
+  calls <- some $ parens (allExprP `sepBy` comma)
+  return $ foldl FuncCall field calls
 
 ternaryP :: Parser Expr
 ternaryP = TernaryExpr
@@ -42,6 +57,8 @@ exprP = ListExpr  <$> brackets (exprP `sepBy` comma)
 
 allExprP :: Parser Expr
 allExprP = try listAccessP
+       <|> try methodCallP
+       <|> try structAccessP
        <|> try funcCallP
        <|> try (parens ternaryP)
        <|> exprP
@@ -50,4 +67,4 @@ constDefnP :: Parser ConstDefn
 constDefnP = ConstDefn
   <$> (rword "let" *> identifier)
   <*> optional (symbol ":" *> openTypeExprP)
-  <*> (symbol "=" *> try ternaryP <|> allExprP)
+  <*> (symbol "=" *> (try ternaryP <|> allExprP))
