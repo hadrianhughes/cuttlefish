@@ -28,6 +28,7 @@ library
     Cuttlefish.Ast
     Cuttlefish.Parser
     Cuttlefish.Parser.Core
+    Cuttlefish.Parser.Types
   hs-source-dirs:
     src
   build-depends:

@@ -8,7 +8,6 @@ import qualified Data.Text                  as T
 import           Control.Monad ( void )
 import           Cuttlefish.Ast
 import           Cuttlefish.Parser.Core
-import           Cuttlefish.Parser.Body
 
 primTypeP :: Parser PrimType
 primTypeP = Int   <$ rword "int"
@@ -22,13 +21,8 @@ typeConstraintP = TypeConstraint <$> typeIdentifier <*> identifier
 dataConstructorP :: Parser (Text, [TypeExpr])
 dataConstructorP = do
   name <- typeIdentifier
-  args <- optional (parens $ typeExprP `sepBy1` comma)
-
-  let args' = case args of
-    Just xs -> xs
-    Nothing -> []
-
-  return (name, args')
+  args <- maybeList <$> optional (parens $ typeExprP `sepBy1` comma)
+  return (name, args)
 
 typeExprP :: Parser TypeExpr
 typeExprP = FuncType         <$> (typeExprP <* symbol "->") <*> typeExprP
@@ -47,5 +41,5 @@ typeExprP = FuncType         <$> (typeExprP <* symbol "->") <*> typeExprP
 
 typeDefnP :: Parser TypeDefn
 typeDefnP = TypeDefn <$> (rword "type" *> typeIdentifier)
-                     <*> angles (typeConstraintP `sepBy1` comma)
+                     <*> (maybeList <$> optional (angles (typeConstraintP `sepBy1` comma)))
                      <*> (symbol "=" *> typeExprP)

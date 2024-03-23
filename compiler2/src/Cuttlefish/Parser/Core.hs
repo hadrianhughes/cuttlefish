@@ -21,14 +21,14 @@ sc = L.space space1 lineCmnt empty
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme sc
 
-symbol :: Parser a -> Parser a
+symbol :: Text -> Parser Text
 symbol = L.symbol sc
 
 int :: Parser Int
-int = lexeme sc (L.signed sc L.decimal)
+int = lexeme (L.signed sc L.decimal)
 
 float :: Parser Double
-float = lexeme sc (L.signed sc L.float)
+float = lexeme (L.signed sc L.float)
 
 parens :: Parser a -> Parser a
 parens = between (symbol "(") (symbol ")")
@@ -85,13 +85,17 @@ binopChars :: [Char]
 binopChars = "&|=!><+-*/^"
 
 typeIdentifier :: Parser Text
-typeIdentifier = (lexeme sc . try) p
+typeIdentifier = (lexeme . try) p
   where
     p = fmap T.pack $ (:) <$> upperChar
                           <*> many alphaNumChar
 
 identifier :: Parser Text
-identifier = (lexeme sc . try) p
+identifier = (lexeme . try) p
   where
     p = fmap T.pack $ (:) <$> lowerChar
                           <*> many alphaNumChar
+
+maybeList :: Maybe [a] -> [a]
+maybeList (Just xs) = xs
+maybeList Nothing   = []

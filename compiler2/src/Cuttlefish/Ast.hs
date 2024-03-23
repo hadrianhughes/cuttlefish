@@ -17,7 +17,7 @@ data TypeExpr = FuncType    TypeExpr TypeExpr
 data TypeConstraint = TypeConstraint Text Text deriving Show
 
 data TypeDefn = TypeDefn { typeName :: Text
-                         , typeConstraints :: TypeConstraint
+                         , typeConstraints :: [TypeConstraint]
                          , typeExpr :: TypeExpr } deriving Show
 
 data Expr = VarRef      [Text]
@@ -56,9 +56,4 @@ data Bind = SimpleBind      Text
           | ConstructorBind Text [Text]
           deriving Show
 
-data Program = Program
-  { funcDefns   :: [FuncDefn]
-  , valDefns    :: [ConstDefn]
-  , typeDefns   :: [TypeDefn]
-  , classDefns  :: [ClassDefn]
-  , memberships :: [MembershipDefn] } deriving Show
+data Program = Program [TypeDefn] deriving Show
