@@ -9,12 +9,18 @@ import Cuttlefish.Ast
 import Cuttlefish.Parser.Core
 import Cuttlefish.Parser.Types
 
+data ChainTerm = StructTerm Text
+               | ListTerm   Expr
+               | FuncTerm   [Expr]
+               | BinaryOp   Text Expr
+
 chainAcc :: Expr -> ChainTerm -> Expr
 chainAcc e c =
   case c of
     (StructTerm field) -> StructAccess e field
     (ListTerm index)   -> ListAccess e index
     (FuncTerm args)    -> FuncCall e args
+    (BinaryOp op e2)   -> FuncCall (VarRef op) [e, e2]
 
 chainExprP :: Parser Expr
 chainExprP = do
@@ -24,8 +30,9 @@ chainExprP = do
   where
     term :: Parser ChainTerm
     term = StructTerm   <$> (dot *> identifier)
-       <|> ListTerm     <$> brackets (chainExprP <|> exprP)
-       <|> FuncTerm     <$> (parens $ (chainExprP <|> exprP) `sepBy` comma)
+       <|> ListTerm     <$> brackets (try chainExprP <|> exprP)
+       <|> FuncTerm     <$> (parens $ (try chainExprP <|> exprP) `sepBy` comma)
+       <|> BinaryOp     <$> binop <*> (try chainExprP <|> exprP)
 
 literalP :: Parser Expr
 literalP = try (FloatLit <$> float)

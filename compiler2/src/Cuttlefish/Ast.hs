@@ -36,10 +36,6 @@ data Expr = VarRef       Text
           | UnitLit
           deriving Show
 
-data ChainTerm = StructTerm Text
-               | ListTerm   Expr
-               | FuncTerm   [Expr]
-
 data FuncDefn = FuncDefn { funcName     :: Text
                          , funcType     :: TypeExpr
                          , funcTypeVars :: [TypeVarDefn]

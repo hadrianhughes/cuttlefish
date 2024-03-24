@@ -85,6 +85,9 @@ rws =
 binopChars :: [Char]
 binopChars = "&|=!><+-*/^"
 
+binop :: Parser Text
+binop = (lexeme . try) (T.pack <$> some (oneOf binopChars))
+
 typeIdentifier :: Parser Text
 typeIdentifier = (lexeme . try) p
   where
