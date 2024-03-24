@@ -23,12 +23,13 @@ dataConstructorP = do
   return (name, args)
 
 closedTypeExprP :: Parser TypeExpr
-closedTypeExprP = ListType         <$> brackets openTypeExprP
-              <|> TupleType        <$> parens (openTypeExprP `sepBy1` comma)
+closedTypeExprP = try (ListType    <$> brackets openTypeExprP)
+              <|> try (TupleType   <$> parens (openTypeExprP `sepBy1` comma))
               <|> try (StructType  <$> braces (keyValPair `sepBy` comma))
-              <|> SetType          <$> braces openTypeExprP
+              <|> try (SetType     <$> braces openTypeExprP)
               <|> try (Constructor <$> dataConstructorP `sepBy1` pipe)
-              <|> PrimType         <$> primTypeP
+              <|> try (FragType    <$> (rword "frag" *> angles openTypeExprP))
+              <|> try (PrimType    <$> primTypeP)
               <|> TypeVar          <$> identifier
               where
                 keyValPair = do
