@@ -99,6 +99,15 @@ constDefnP = ConstDefn
 
 -- Functions
 
+argP :: Parser (Bind, TypeExpr)
+argP = do
+  arg <- bindP
+  typ <- colon *> openTypeExprP
+  return (arg, typ)
+
+argFold :: (a, TypeExpr) -> TypeExpr -> TypeExpr
+argFold (_, t1) t2 = FuncType t1 t2
+
 funcDefnP :: Parser FuncDefn
 funcDefnP = do
   name     <- rword "func" *> identifier
@@ -116,13 +125,6 @@ funcDefnP = do
     typeVars'
     (map fst args)
     body
-  where
-    argFold :: (a, TypeExpr) -> TypeExpr -> TypeExpr
-    argFold = \(_, t1) t2 -> FuncType t1 t2
-    argP = do
-      name <- bindP
-      typ  <- colon *> openTypeExprP
-      return (name, typ)
 
 funcDefnP' :: Parser FuncDefn
 funcDefnP' = do
@@ -144,6 +146,24 @@ funcDefnP' = do
       name <- identifier
       typ  <- colon *> openTypeExprP
       return (name, typ)
+
+fragDefnP :: Parser FuncDefn
+fragDefnP = do
+  name     <- rword "frag" *> identifier
+  typeVars <- optional (angles $ some typeVarDefnP)
+  args     <- parens $ argP `sepBy` comma
+  rtnType  <- symbol "->" *> openTypeExprP
+  body     <- blockExprP
+
+  let funcType  = foldr argFold (FragType rtnType) args
+      typeVars' = maybeList typeVars
+
+  return $ FuncDefn
+    name
+    funcType
+    typeVars'
+    (map fst args)
+    body
 
 -- Statements
 
