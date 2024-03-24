@@ -30,8 +30,8 @@ chainExprP = do
   where
     term :: Parser ChainTerm
     term = StructTerm   <$> (dot *> identifier)
-       <|> ListTerm     <$> brackets (try chainExprP <|> exprP)
-       <|> FuncTerm     <$> (parens $ (try chainExprP <|> exprP) `sepBy` comma)
+       <|> ListTerm     <$> brackets topLevelExprP
+       <|> FuncTerm     <$> (parens $ topLevelExprP `sepBy` comma)
        <|> BinaryOp     <$> binop <*> (try chainExprP <|> exprP)
 
 literalP :: Parser Expr
@@ -47,7 +47,7 @@ ternaryP = TernaryExpr
        <*> (symbol "?" *> nestedExpr)
        <*> (symbol ":" *> nestedExpr)
        where
-        nestedExpr = chainExprP <|> exprP
+        nestedExpr = try chainExprP <|> exprP
 
 matchExprP :: Parser Expr
 matchExprP = MatchExpr
@@ -56,15 +56,19 @@ matchExprP = MatchExpr
   where
     caseP = do
       bind <- bindP
-      expr <- symbol "->" *> (try chainExprP <|> try ternaryP <|> exprP)
+      expr <- symbol "->" *> topLevelExprP
       return (bind, expr)
 
 exprP :: Parser Expr
-exprP = ListExpr  <$> brackets (exprP `sepBy` comma)
-    <|> TupleExpr <$> parens (exprP `sepBy` comma)
+exprP = ListExpr  <$> brackets (topLevelExprP `sepBy` comma)
+    <|> TupleExpr <$> parens (topLevelExprP `sepBy` comma)
     <|> matchExprP
+    <|> parens ternaryP
     <|> VarRef    <$> identifier
     <|> literalP
+
+topLevelExprP :: Parser Expr
+topLevelExprP = try ternaryP <|> try chainExprP <|> exprP
 
 bindP :: Parser Bind
 bindP = try (TupleBind <$> parens (bindP `sepBy1` comma))
@@ -77,4 +81,4 @@ constDefnP :: Parser ConstDefn
 constDefnP = ConstDefn
   <$> (rword "let" *> identifier)
   <*> optional (symbol ":" *> openTypeExprP)
-  <*> (symbol "=" *> (try ternaryP <|> chainExprP <|> exprP))
+  <*> (symbol "=" *> topLevelExprP)
