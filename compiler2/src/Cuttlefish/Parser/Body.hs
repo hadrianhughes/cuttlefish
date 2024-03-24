@@ -14,16 +14,16 @@ import Cuttlefish.Parser.Types
 
 data ChainTerm = StructTerm Text
                | ListTerm   Expr
-               | FuncTerm   [Expr]
+               | FuncTerm   [Expr] Bool
 
 data BinopTerm = BinopTerm Text Expr
 
 chainAcc :: Expr -> ChainTerm -> Expr
 chainAcc e c =
   case c of
-    (StructTerm field) -> StructAccess e field
-    (ListTerm index)   -> ListAccess e index
-    (FuncTerm args)    -> FuncCall e args
+    (StructTerm field)     -> StructAccess e field
+    (ListTerm index)       -> ListAccess e index
+    (FuncTerm args isFrag) -> FuncCall e args isFrag
 
 chainExprP :: Parser Expr
 chainExprP = do
@@ -34,13 +34,13 @@ chainExprP = do
     term :: Parser ChainTerm
     term = StructTerm   <$> (dot *> identifier)
        <|> ListTerm     <$> brackets topLevelExprP
-       <|> FuncTerm     <$> (parens $ topLevelExprP `sepBy` comma)
+       <|> FuncTerm     <$> (parens $ topLevelExprP `sepBy` comma) <*> (isJust <$> optional (symbol "!"))
 
 operatorP :: Parser Expr
 operatorP = do
   start <- try chainExprP <|> exprP
   terms <- many $ BinopTerm <$> binop <*> (try blockExprP <|> try chainExprP <|> exprP)
-  return $ foldr (\(BinopTerm op arg2) expr -> FuncCall (VarRef op) [expr, arg2]) start terms
+  return $ foldr (\(BinopTerm op arg2) expr -> FuncCall (VarRef op) [expr, arg2] False) start terms
 
 literalP :: Parser Expr
 literalP = try (FloatLit <$> float)

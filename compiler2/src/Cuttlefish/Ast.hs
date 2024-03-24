@@ -26,7 +26,7 @@ data Expr = VarRef       Text
           | ListAccess   Expr Expr
           | StructAccess Expr Text
           | TernaryExpr  Expr Expr Expr
-          | FuncCall     Expr [Expr]
+          | FuncCall     { call :: Expr, callArgs :: [Expr], callingFrag :: Bool }
           | ListExpr     [Expr]
           | TupleExpr    [Expr]
           | MatchExpr    Bind [(Bind, Expr)]
