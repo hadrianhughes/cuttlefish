@@ -29,6 +29,7 @@ data Expr = VarRef       Text
           | ListExpr     [Expr]
           | TupleExpr    [Expr]
           | MatchExpr    Bind [(Bind, Expr)]
+          | RoutineExpr  [Statement]
           | IntLit       Int
           | CharLit      Char
           | StrLit       Text
