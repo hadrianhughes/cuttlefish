@@ -28,7 +28,7 @@ data Expr = VarRef       Text
           | FuncCall     Expr [Expr]
           | ListExpr     [Expr]
           | TupleExpr    [Expr]
-          | MatchExpr    Text [(Bind, Expr)]
+          | MatchExpr    Bind [(Bind, Expr)]
           | IntLit       Int
           | CharLit      Char
           | StrLit       Text

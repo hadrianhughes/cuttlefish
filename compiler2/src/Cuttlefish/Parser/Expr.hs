@@ -42,15 +42,28 @@ ternaryP = TernaryExpr
        where
         nestedExpr = chainExprP <|> exprP
 
+matchExprP :: Parser Expr
+matchExprP = MatchExpr
+  <$> (rword "match" *> bindP)
+  <*> braces (caseP `sepBy1` comma)
+  where
+    caseP = do
+      bind <- bindP
+      expr <- symbol "->" *> (try chainExprP <|> try ternaryP <|> exprP)
+      return (bind, expr)
+
 exprP :: Parser Expr
 exprP = ListExpr  <$> brackets (exprP `sepBy` comma)
     <|> TupleExpr <$> parens (exprP `sepBy` comma)
+    <|> matchExprP
     <|> VarRef    <$> identifier
     <|> literalP
 
 bindP :: Parser Bind
 bindP = try (TupleBind <$> parens (bindP `sepBy1` comma))
-    <|> ConstructorBind <$> typeIdentifier <*> parens (identifier `sepBy1` comma)
+    <|> ConstructorBind
+      <$> typeIdentifier
+      <*> (maybeList <$> optional (parens (identifier `sepBy1` comma)))
     <|> SimpleBind <$> identifier
 
 constDefnP :: Parser ConstDefn
