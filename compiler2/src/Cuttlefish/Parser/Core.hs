@@ -70,6 +70,7 @@ rws =
   , "float"
   , "char"
   , "if"
+  , "then"
   , "else"
   , "let"
   , "mut"

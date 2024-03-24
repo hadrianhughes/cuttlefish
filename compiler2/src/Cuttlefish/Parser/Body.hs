@@ -173,7 +173,7 @@ fragDefnP = do
 ifStmtP :: Parser Statement
 ifStmtP = IfStmt
   <$> (rword "if" *> (try ternaryP <|> try operatorP <|> try chainExprP <|> exprP))
-  <*> blockP
+  <*> (rword "then" *> blockP)
   <*> optional (rword "else" *> blockP)
 
 varDeclP :: Parser Statement
