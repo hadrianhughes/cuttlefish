@@ -93,7 +93,7 @@ funcDefnP = do
   typeVars <- optional (angles $ some typeVarDefnP)
   args     <- parens $ argP `sepBy` comma
   rtnType  <- symbol "->" *> openTypeExprP
-  body     <- symbol "=" *> (try chainExprP <|> exprP)
+  body     <- (symbol "=" *> (try chainExprP <|> exprP)) <|> (RoutineExpr <$> routineP)
 
   let funcType  = foldr argFold rtnType args
       typeVars' = maybeList typeVars
@@ -117,7 +117,7 @@ funcDefnP' = do
   (name, funcType) <- rword "func" *> parens nameTypeP
   typeVars         <- optional (angles $ some typeVarDefnP)
   args             <- parens (bindP `sepBy` comma)
-  body             <- symbol "=" *> (try chainExprP <|> exprP)
+  body             <- (symbol "=" *> (try chainExprP <|> exprP)) <|> (RoutineExpr <$> routineP)
 
   let typeVars' = maybeList typeVars
 
@@ -168,9 +168,9 @@ routineP :: Parser [Statement]
 routineP = braces (statementP `sepBy` eol)
 
 statementP :: Parser Statement
-statementP = ifStmtP
-         <|> varDeclP
+statementP = try ifStmtP
+         <|> try varDeclP
          <|> try assignStmtP
          <|> try exprStmtP
-         <|> forLoopP
+         <|> try forLoopP
          <|> returnStmtP
