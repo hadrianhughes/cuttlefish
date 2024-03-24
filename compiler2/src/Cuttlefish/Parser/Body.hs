@@ -49,13 +49,13 @@ literalP = try (FloatLit <$> float)
        <|> StrLit   <$> dquotes (takeWhileP Nothing (/= '"'))
        <|> (symbol "()" *> return UnitLit)
 
-ternaryP :: Parser Expr
-ternaryP = TernaryExpr
-       <$> nestedExpr
-       <*> (symbol "?" *> nestedExpr)
-       <*> (symbol ":" *> nestedExpr)
+ifExprP :: Parser Expr
+ifExprP = IfExpr
+       <$> (rword "if" *> (try operatorP <|> try chainExprP <|> exprP))
+       <*> (rword "then" *> nestedExpr)
+       <*> (symbol "else" *> nestedExpr)
        where
-        nestedExpr = try blockExprP <|> try chainExprP <|> exprP
+        nestedExpr = try blockExprP <|> try operatorP <|> try chainExprP <|> exprP
 
 matchExprP :: Parser Expr
 matchExprP = MatchExpr
@@ -80,7 +80,7 @@ blockExprP = BlockExpr <$> blockP
 
 topLevelExprP :: Parser Expr
 topLevelExprP = try blockExprP
-            <|> try ternaryP
+            <|> try ifExprP
             <|> try operatorP
             <|> try chainExprP
             <|> exprP
@@ -173,7 +173,7 @@ fragDefnP = do
 
 ifStmtP :: Parser Statement
 ifStmtP = IfStmt
-  <$> (rword "if" *> (try ternaryP <|> try operatorP <|> try chainExprP <|> exprP))
+  <$> (rword "if" *> (try operatorP <|> try chainExprP <|> exprP))
   <*> (rword "then" *> blockP)
   <*> optional (rword "else" *> blockP)
 

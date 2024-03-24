@@ -25,7 +25,7 @@ data TypeDefn = TypeDefn { typeName :: Text
 data Expr = VarRef       Text
           | ListAccess   Expr Expr
           | StructAccess Expr Text
-          | TernaryExpr  Expr Expr Expr
+          | IfExpr       Expr Expr Expr
           | FuncCall     { call :: Expr, callArgs :: [Expr], callingFrag :: Bool }
           | ListExpr     [Expr]
           | TupleExpr    [Expr]
