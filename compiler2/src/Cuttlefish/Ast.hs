@@ -10,6 +10,7 @@ data TypeExpr = FuncType    TypeExpr TypeExpr
               | StructType  [(Text, TypeExpr)]
               | SetType     TypeExpr
               | Constructor [(Text, [TypeExpr])]
+              | FragType    TypeExpr
               | TypeVar     Text
               | PrimType    PrimType
               deriving Show
