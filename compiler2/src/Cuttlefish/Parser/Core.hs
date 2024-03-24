@@ -80,7 +80,13 @@ rws =
   , "member"
   , "return"
   , "match"
-  , "func" ]
+  , "func"
+  , "frag" ]
+
+checkIsRW :: Text -> Parser Text
+checkIsRW w = if w `elem` rws
+  then fail $ "keyword " <> show w <> " cannot be an identifier"
+  else return w
 
 binopChars :: [Char]
 binopChars = "&|=!><+-*/^"
@@ -95,13 +101,13 @@ typeIdentifier = (lexeme . try) p
                           <*> many alphaNumChar
 
 identifier :: Parser Text
-identifier = (lexeme . try) p
+identifier = (lexeme . try) (p >>= checkIsRW)
   where
     p = fmap T.pack $ (:) <$> lowerChar
                           <*> many alphaNumChar
 
 identifier' :: Parser Text
-identifier' = T.pack <$> some alphaNumChar
+identifier' = (T.pack <$> some alphaNumChar) >>= checkIsRW
 
 maybeList :: Maybe [a] -> [a]
 maybeList (Just xs) = xs
