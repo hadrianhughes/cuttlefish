@@ -14,8 +14,8 @@ data TypeExpr = FuncType    TypeExpr TypeExpr
               | PrimType    PrimType
               deriving Show
 
-data TypeVarDefn = TypeVarDefn { varClass :: Maybe Text
-                               , varName  :: Text } deriving Show
+data TypeVarDefn = TypeVarDefn { varDefnClass :: Maybe Text
+                               , varDefnName  :: Text } deriving Show
 
 data TypeDefn = TypeDefn { typeName :: Text
                          , typeVars :: [TypeVarDefn]
@@ -57,6 +57,20 @@ data Bind = SimpleBind      Text
           | TupleBind       [Bind]
           | ConstructorBind Text [Text]
           deriving Show
+
+data Statement = IfStmt { ifCond :: Expr
+                        , ifThen :: [Statement]
+                        , ifElse :: Maybe [Statement] }
+               | VarDecl { varName  :: Text
+                         , varType  :: TypeExpr
+                         , varValue :: Expr }
+               | AssignStmt Expr Expr
+               | ExprStmt Expr
+               | ForLoop { forBind :: Bind
+                         , forList :: Expr
+                         , forBody :: [Statement] }
+               | ReturnStmt Expr
+               deriving Show
 
 data Program = Program
   [TypeDefn]
