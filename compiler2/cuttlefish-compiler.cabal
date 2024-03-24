@@ -27,10 +27,8 @@ library
     Cuttlefish
     Cuttlefish.Ast
     Cuttlefish.Parser
-    Cuttlefish.Parser.Expr
-    Cuttlefish.Parser.Func
+    Cuttlefish.Parser.Body
     Cuttlefish.Parser.Core
-    Cuttlefish.Parser.Statement
     Cuttlefish.Parser.Types
   hs-source-dirs:
     src

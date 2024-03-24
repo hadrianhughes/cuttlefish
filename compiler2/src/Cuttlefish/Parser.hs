@@ -6,9 +6,8 @@ module Cuttlefish.Parser
 where
 
 import Text.Megaparsec
+import Cuttlefish.Parser.Body
 import Cuttlefish.Parser.Core
-import Cuttlefish.Parser.Expr
-import Cuttlefish.Parser.Func
 import Cuttlefish.Parser.Types
 import Cuttlefish.Ast
 
