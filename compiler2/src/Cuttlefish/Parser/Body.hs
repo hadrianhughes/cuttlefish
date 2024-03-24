@@ -49,7 +49,7 @@ ternaryP = TernaryExpr
        <*> (symbol "?" *> nestedExpr)
        <*> (symbol ":" *> nestedExpr)
        where
-        nestedExpr = try chainExprP <|> exprP
+        nestedExpr = try routineExprP <|> try chainExprP <|> exprP
 
 matchExprP :: Parser Expr
 matchExprP = MatchExpr
@@ -62,15 +62,21 @@ matchExprP = MatchExpr
       return (bind, expr)
 
 exprP :: Parser Expr
-exprP = ListExpr  <$> brackets (topLevelExprP `sepBy` comma)
-    <|> TupleExpr <$> parens (topLevelExprP `sepBy` comma)
+exprP = ListExpr    <$> brackets (topLevelExprP `sepBy` comma)
+    <|> TupleExpr   <$> parens (topLevelExprP `sepBy` comma)
     <|> matchExprP
     <|> parens ternaryP
-    <|> VarRef    <$> identifier
+    <|> VarRef      <$> identifier
     <|> literalP
 
+routineExprP :: Parser Expr
+routineExprP = RoutineExpr <$> routineP
+
 topLevelExprP :: Parser Expr
-topLevelExprP = try ternaryP <|> try chainExprP <|> exprP
+topLevelExprP = try routineExprP
+            <|> try ternaryP
+            <|> try chainExprP
+            <|> exprP
 
 bindP :: Parser Bind
 bindP = try (TupleBind <$> parens (bindP `sepBy1` comma))
@@ -93,7 +99,7 @@ funcDefnP = do
   typeVars <- optional (angles $ some typeVarDefnP)
   args     <- parens $ argP `sepBy` comma
   rtnType  <- symbol "->" *> openTypeExprP
-  body     <- (symbol "=" *> (try chainExprP <|> exprP)) <|> (RoutineExpr <$> routineP)
+  body     <- (symbol "=" *> (try chainExprP <|> exprP)) <|> routineExprP
 
   let funcType  = foldr argFold rtnType args
       typeVars' = maybeList typeVars
@@ -117,7 +123,7 @@ funcDefnP' = do
   (name, funcType) <- rword "func" *> parens nameTypeP
   typeVars         <- optional (angles $ some typeVarDefnP)
   args             <- parens (bindP `sepBy` comma)
-  body             <- (symbol "=" *> (try chainExprP <|> exprP)) <|> (RoutineExpr <$> routineP)
+  body             <- (symbol "=" *> (try chainExprP <|> exprP)) <|> routineExprP
 
   let typeVars' = maybeList typeVars
 
