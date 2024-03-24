@@ -14,7 +14,8 @@ import Cuttlefish.Parser.Types
 data ChainTerm = StructTerm Text
                | ListTerm   Expr
                | FuncTerm   [Expr]
-               | BinaryOp   Text Expr
+
+data BinopTerm = BinopTerm Text Expr
 
 chainAcc :: Expr -> ChainTerm -> Expr
 chainAcc e c =
@@ -22,11 +23,10 @@ chainAcc e c =
     (StructTerm field) -> StructAccess e field
     (ListTerm index)   -> ListAccess e index
     (FuncTerm args)    -> FuncCall e args
-    (BinaryOp op e2)   -> FuncCall (VarRef op) [e, e2]
 
 chainExprP :: Parser Expr
 chainExprP = do
-  start <- try exprP <|> parens chainExprP
+  start <- try exprP
   terms <- many term
   return $ foldl chainAcc start terms
   where
@@ -34,7 +34,12 @@ chainExprP = do
     term = StructTerm   <$> (dot *> identifier)
        <|> ListTerm     <$> brackets topLevelExprP
        <|> FuncTerm     <$> (parens $ topLevelExprP `sepBy` comma)
-       <|> BinaryOp     <$> binop <*> (try chainExprP <|> exprP)
+
+operatorP :: Parser Expr
+operatorP = do
+  start <- try chainExprP <|> exprP
+  terms <- many $ BinopTerm <$> binop <*> (try routineExprP <|> try chainExprP <|> exprP)
+  return $ foldr (\(BinopTerm op arg2) expr -> FuncCall (VarRef op) [expr, arg2]) start terms
 
 literalP :: Parser Expr
 literalP = try (FloatLit <$> float)
@@ -65,7 +70,7 @@ exprP :: Parser Expr
 exprP = ListExpr    <$> brackets (topLevelExprP `sepBy` comma)
     <|> TupleExpr   <$> parens (topLevelExprP `sepBy` comma)
     <|> matchExprP
-    <|> parens ternaryP
+    <|> parens topLevelExprP
     <|> VarRef      <$> identifier
     <|> literalP
 
@@ -75,6 +80,7 @@ routineExprP = RoutineExpr <$> routineP
 topLevelExprP :: Parser Expr
 topLevelExprP = try routineExprP
             <|> try ternaryP
+            <|> try operatorP
             <|> try chainExprP
             <|> exprP
 
@@ -99,7 +105,7 @@ funcDefnP = do
   typeVars <- optional (angles $ some typeVarDefnP)
   args     <- parens $ argP `sepBy` comma
   rtnType  <- symbol "->" *> openTypeExprP
-  body     <- (symbol "=" *> (try chainExprP <|> exprP)) <|> routineExprP
+  body     <- (symbol "=" *> topLevelExprP) <|> routineExprP
 
   let funcType  = foldr argFold rtnType args
       typeVars' = maybeList typeVars
@@ -123,7 +129,7 @@ funcDefnP' = do
   (name, funcType) <- rword "func" *> parens nameTypeP
   typeVars         <- optional (angles $ some typeVarDefnP)
   args             <- parens (bindP `sepBy` comma)
-  body             <- (symbol "=" *> (try chainExprP <|> exprP)) <|> routineExprP
+  body             <- (symbol "=" *> topLevelExprP) <|> routineExprP
 
   let typeVars' = maybeList typeVars
 
@@ -143,7 +149,7 @@ funcDefnP' = do
 
 ifStmtP :: Parser Statement
 ifStmtP = IfStmt
-  <$> (rword "if" *> try chainExprP <|> exprP)
+  <$> (rword "if" *> try ternaryP <|> try operatorP <|> try chainExprP <|> exprP)
   <*> routineP
   <*> optional (rword "else" *> routineP)
 
