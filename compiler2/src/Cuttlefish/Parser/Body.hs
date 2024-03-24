@@ -38,7 +38,7 @@ chainExprP = do
 operatorP :: Parser Expr
 operatorP = do
   start <- try chainExprP <|> exprP
-  terms <- many $ BinopTerm <$> binop <*> (try routineExprP <|> try chainExprP <|> exprP)
+  terms <- many $ BinopTerm <$> binop <*> (try blockExprP <|> try chainExprP <|> exprP)
   return $ foldr (\(BinopTerm op arg2) expr -> FuncCall (VarRef op) [expr, arg2]) start terms
 
 literalP :: Parser Expr
@@ -54,7 +54,7 @@ ternaryP = TernaryExpr
        <*> (symbol "?" *> nestedExpr)
        <*> (symbol ":" *> nestedExpr)
        where
-        nestedExpr = try routineExprP <|> try chainExprP <|> exprP
+        nestedExpr = try blockExprP <|> try chainExprP <|> exprP
 
 matchExprP :: Parser Expr
 matchExprP = MatchExpr
@@ -74,11 +74,11 @@ exprP = ListExpr    <$> brackets (topLevelExprP `sepBy` comma)
     <|> VarRef      <$> identifier
     <|> literalP
 
-routineExprP :: Parser Expr
-routineExprP = RoutineExpr <$> routineP
+blockExprP :: Parser Expr
+blockExprP = BlockExpr <$> blockP
 
 topLevelExprP :: Parser Expr
-topLevelExprP = try routineExprP
+topLevelExprP = try blockExprP
             <|> try ternaryP
             <|> try operatorP
             <|> try chainExprP
@@ -105,7 +105,7 @@ funcDefnP = do
   typeVars <- optional (angles $ some typeVarDefnP)
   args     <- parens $ argP `sepBy` comma
   rtnType  <- symbol "->" *> openTypeExprP
-  body     <- (symbol "=" *> topLevelExprP) <|> routineExprP
+  body     <- (symbol "=" *> topLevelExprP) <|> blockExprP
 
   let funcType  = foldr argFold rtnType args
       typeVars' = maybeList typeVars
@@ -129,7 +129,7 @@ funcDefnP' = do
   (name, funcType) <- rword "func" *> parens nameTypeP
   typeVars         <- optional (angles $ some typeVarDefnP)
   args             <- parens (bindP `sepBy` comma)
-  body             <- (symbol "=" *> topLevelExprP) <|> routineExprP
+  body             <- (symbol "=" *> topLevelExprP) <|> blockExprP
 
   let typeVars' = maybeList typeVars
 
@@ -150,8 +150,8 @@ funcDefnP' = do
 ifStmtP :: Parser Statement
 ifStmtP = IfStmt
   <$> (rword "if" *> try ternaryP <|> try operatorP <|> try chainExprP <|> exprP)
-  <*> routineP
-  <*> optional (rword "else" *> routineP)
+  <*> blockP
+  <*> optional (rword "else" *> blockP)
 
 varDeclP :: Parser Statement
 varDeclP = VarDecl
@@ -171,13 +171,13 @@ forLoopP :: Parser Statement
 forLoopP = ForLoop
        <$> (rword "for" *> bindP)
        <*> (rword "in" *> (try chainExprP <|> exprP))
-       <*> routineP
+       <*> blockP
 
 returnStmtP :: Parser Statement
 returnStmtP = ReturnStmt <$> (rword "return" *> topLevelExprP)
 
-routineP :: Parser [Statement]
-routineP = braces (statementP `sepBy` eol)
+blockP :: Parser [Statement]
+blockP = braces (statementP `sepBy` eol)
 
 statementP :: Parser Statement
 statementP = try ifStmtP
