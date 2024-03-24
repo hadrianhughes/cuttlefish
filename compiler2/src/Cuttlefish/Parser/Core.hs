@@ -1,5 +1,6 @@
 module Cuttlefish.Parser.Core where
 
+import           Control.Applicative (liftA2)
 import           Data.Char
 import           Text.Megaparsec
 import           Text.Megaparsec.Char
@@ -113,3 +114,6 @@ identifier' = (T.pack <$> some alphaNumChar) >>= checkIsRW
 maybeList :: Maybe [a] -> [a]
 maybeList (Just xs) = xs
 maybeList Nothing   = []
+
+sepBy2 :: Parser a -> Parser () -> Parser [a]
+sepBy2 p sep = (liftA2 (:)) (p <* sep) (p `sepBy1` sep)

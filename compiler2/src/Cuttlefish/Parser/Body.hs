@@ -68,11 +68,11 @@ matchExprP = MatchExpr
       return (bind, expr)
 
 exprP :: Parser Expr
-exprP = ListExpr    <$> brackets (topLevelExprP `sepBy` comma)
-    <|> TupleExpr   <$> parens (topLevelExprP `sepBy` comma)
-    <|> matchExprP
-    <|> parens topLevelExprP
-    <|> VarRef      <$> identifier
+exprP = try (ListExpr <$> brackets (topLevelExprP `sepBy` comma))
+    <|> try (TupleExpr <$> parens (topLevelExprP `sepBy2` comma))
+    <|> try matchExprP
+    <|> try (parens topLevelExprP)
+    <|> try (VarRef <$> identifier)
     <|> literalP
 
 blockExprP :: Parser Expr
