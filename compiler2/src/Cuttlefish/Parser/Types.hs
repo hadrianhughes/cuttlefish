@@ -18,7 +18,7 @@ typeVarDefnP = TypeVarDefn <$> optional typeIdentifier <*> identifier
 dataConstructorP :: Parser (Text, [TypeExpr])
 dataConstructorP = do
   name <- typeIdentifier
-  args <- maybeList <$> optional (parens $ openTypeExprP `sepBy1` comma)
+  args <- maybeList <$> optional (angles $ openTypeExprP `sepBy1` comma)
   return (name, args)
 
 closedTypeExprP :: Parser TypeExpr
