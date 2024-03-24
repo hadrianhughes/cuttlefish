@@ -1,6 +1,7 @@
 module Cuttlefish.Parser.Body where
 
 import Data.Char
+import Data.Maybe
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import Data.Text (Text)
@@ -113,10 +114,11 @@ funcDefnP = do
   name     <- rword "func" *> identifier
   typeVars <- optional (angles $ some typeVarDefnP)
   args     <- parens $ argP `sepBy` comma
-  rtnType  <- symbol "->" *> openTypeExprP
+  rtnType  <- optional $ symbol "->" *> openTypeExprP
   body     <- (symbol "=" *> topLevelExprP) <|> blockExprP
 
-  let funcType  = foldr argFold rtnType args
+  let rtnType'  = fromMaybe (PrimType Unit) rtnType
+      funcType  = foldr argFold rtnType' args
       typeVars' = maybeList typeVars
 
   return $ FuncDefn
@@ -152,10 +154,11 @@ fragDefnP = do
   name     <- rword "frag" *> identifier
   typeVars <- optional (angles $ some typeVarDefnP)
   args     <- parens $ argP `sepBy` comma
-  rtnType  <- symbol "->" *> openTypeExprP
+  rtnType  <- optional $ symbol "->" *> openTypeExprP
   body     <- blockExprP
 
-  let funcType  = foldr argFold (FragType rtnType) args
+  let rtnType'  = fromMaybe (PrimType Unit) rtnType
+      funcType  = foldr argFold (FragType rtnType') args
       typeVars' = maybeList typeVars
 
   return $ FuncDefn
