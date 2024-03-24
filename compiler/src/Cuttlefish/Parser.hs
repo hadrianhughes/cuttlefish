@@ -5,48 +5,35 @@ module Cuttlefish.Parser
   )
 where
 
-import Data.Either
 import Text.Megaparsec
+import Cuttlefish.Parser.Body
 import Cuttlefish.Parser.Core
 import Cuttlefish.Parser.Types
-import Cuttlefish.Parser.Body
 import Cuttlefish.Ast
 
-data ProgramRoot = RClassDefn      ClassDefn
-                 | RTypeSig        TypeSig
-                 | RDefn           Defn
-                 | RMembershipDefn MembershipDefn
-                 | RTypeDefn       TypeDefn
+data ProgramRoot = RTypeDefn  TypeDefn
+                 | RConstDefn ConstDefn
+                 | RFuncDefn  FuncDefn
 
 programRootsP :: Parser [ProgramRoot]
 programRootsP = many $
-                try (RClassDefn      <$> classDefnP)
-            <|> try (RTypeDefn       <$> typeDefnP)
-            <|> try (RTypeSig        <$> typeSigP)
-            <|> try (RMembershipDefn <$> membershipP)
-            <|> try (RDefn           <$> defnP)
-
-sigs :: [ProgramRoot] -> [TypeSig]
-sigs r = [s | RTypeSig s <- r]
-
-defns :: [ProgramRoot] -> [Defn]
-defns r = [d | RDefn d <- r]
+                try (RTypeDefn  <$> typeDefnP)
+            <|> try (RConstDefn <$> constDefnP)
+            <|> try (RFuncDefn  <$> (try funcDefnP <|> try funcDefnP' <|> fragDefnP))
 
 typeDefns :: [ProgramRoot] -> [TypeDefn]
 typeDefns r = [td | RTypeDefn td <- r]
 
-classDefns :: [ProgramRoot] -> [ClassDefn]
-classDefns r = [c | RClassDefn c <- r]
+constDefns :: [ProgramRoot] -> [ConstDefn]
+constDefns r = [c | RConstDefn c <- r]
 
-membershipDefns :: [ProgramRoot] -> [MembershipDefn]
-membershipDefns r = [m | RMembershipDefn m <- r]
+funcDefns :: [ProgramRoot] -> [FuncDefn]
+funcDefns r = [f | RFuncDefn f <- r]
 
 programP :: Parser Program
-programP = between fsc eof $ do
+programP = between sc eof $ do
   roots <- programRootsP
   return $ Program
-    (sigs roots)
-    (defns roots)
     (typeDefns roots)
-    (classDefns roots)
-    (membershipDefns roots)
+    (constDefns roots)
+    (funcDefns roots)

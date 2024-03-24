@@ -2,74 +2,80 @@ module Cuttlefish.Ast where
 
 import Data.Text (Text)
 
-data PrimType = Int | Float | Bool | Unit | Char deriving Show
+data PrimType = Int | Float | Char | Unit deriving Show
 
-data TypeConstraint = TypeConstraint Text Text deriving Show
-
-data TypeExpr = FuncType { arg :: TypeExpr, rtn :: TypeExpr }
-              | ListType TypeExpr
-              | TupleType [TypeExpr]
-              | StructType [(Text, TypeExpr)]
-              | SetType TypeExpr
-              | TypeConstructor { constructors :: [(Text, [TypeExpr])] }
-              | ConstraintWrap [TypeConstraint] TypeExpr
-              | TypeVar Text
-              | PrimType PrimType
+data TypeExpr = FuncType    TypeExpr TypeExpr
+              | ListType    TypeExpr
+              | TupleType   [TypeExpr]
+              | StructType  [(Text, TypeExpr)]
+              | SetType     TypeExpr
+              | Constructor [(Text, [TypeExpr])]
+              | FragType    TypeExpr
+              | TypeVar     Text
+              | PrimType    PrimType
               deriving Show
 
-data TypeDefn = TypeDefn { typeDefnName :: Text
-                         , typeArgs :: [Text]
-                         , typeValue :: TypeExpr } deriving Show
+data TypeVarDefn = TypeVarDefn { varDefnClass :: Maybe Text
+                               , varDefnName  :: Text } deriving Show
 
-data TypeSig = TypeSig Text TypeExpr deriving Show
+data TypeDefn = TypeDefn { typeName :: Text
+                         , typeVars :: [TypeVarDefn]
+                         , typeExpr :: TypeExpr } deriving Show
 
-data ClassDefn = ClassDefn { classType :: TypeConstraint
-                           , classSigs :: [TypeSig] }
-                           deriving Show
-
-data Expr = Reference        [Text]
-          | ListAccess       Expr Expr
-          | TernaryExpr      Expr Expr Expr
-          | FuncCall         Expr [Expr]
-          | ListExpr         [Expr]
-          | DConstructorExpr Text [Expr]
-          | TupleExpr        [Expr]
-          | MatchExpr        { matchValue :: Text, cases :: [(Bind, Expr)] }
-          | IntLit           Int
-          | StrLit           Text
-          | CharLit          Int
-          | FloatLit         Double
+data Expr = VarRef       Text
+          | ListAccess   Expr Expr
+          | StructAccess Expr Text
+          | IfExpr       Expr Expr Expr
+          | FuncCall     { call :: Expr, callArgs :: [Expr], callingFrag :: Bool }
+          | ListExpr     [Expr]
+          | TupleExpr    [Expr]
+          | MatchExpr    Bind [(Bind, Expr)]
+          | BlockExpr    [Statement]
+          | IntLit       Int
+          | CharLit      Char
+          | StrLit       Text
+          | FloatLit     Double
+          | UnitLit
           deriving Show
 
-data Bind = SimpleBind       Text
-          | ListBind         [Bind]
-          | TupleBind        [Bind]
-          | DConstructorBind Text [Text]
-          deriving Show
+data FuncDefn = FuncDefn { funcName     :: Text
+                         , funcType     :: TypeExpr
+                         , funcTypeVars :: [TypeVarDefn]
+                         , funcArgs     :: [Bind]
+                         , funcBody     :: Expr } deriving Show
 
-data Defn = Defn { defnName :: Text , fnArgs :: [Bind] , value :: Expr }
-          | AlgoDefn { defnName :: Text , fnArgs :: [Bind] , algo :: Algo }
-          deriving Show
+data ConstDefn = ConstDefn { constName  :: Text
+                           , constType  :: Maybe TypeExpr
+                           , constValue :: Expr } deriving Show
 
-data Algo = Algo [Statement] deriving Show
+data ClassDefn = ClassDefn { classBind :: Bind
+                           , classSigs :: [(Text, TypeExpr)] } deriving Show
 
-data MembershipDefn = MembershipDefn { membType :: Text
+data MembershipDefn = MembershipDefn { membType  :: Text
                                      , membClass :: Text
-                                     , membDefns :: [Defn] }
-                                     deriving Show
+                                     , membDefns :: FuncDefn } deriving Show
 
-data Statement = IfStmt Expr Algo (Maybe Algo)
-               | VarDecl { varName :: Text, varValue :: Expr, mutable :: Bool }
-               | Destructure Bind Expr
-               | Expr Expr
-               | ForLoop Bind Expr Algo
-               | Return Expr
+data Bind = SimpleBind      Text
+          | TupleBind       [Bind]
+          | ConstructorBind Text [Text]
+          deriving Show
+
+data Statement = IfStmt { ifCond :: Expr
+                        , ifThen :: [Statement]
+                        , ifElse :: Maybe [Statement] }
+               | VarDecl { varName  :: Text
+                         , varType  :: Maybe TypeExpr
+                         , varValue :: Expr }
+               | AssignStmt Expr Expr
+               | ExprStmt Expr
+               | ForLoop { forBind :: Bind
+                         , forList :: Expr
+                         , forBody :: [Statement] }
+               | ReturnStmt Expr
                deriving Show
 
 data Program = Program
-                [TypeSig]
-                [Defn]
-                [TypeDefn]
-                [ClassDefn]
-                [MembershipDefn]
-                deriving Show
+  [TypeDefn]
+  [ConstDefn]
+  [FuncDefn]
+  deriving Show

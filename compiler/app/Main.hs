@@ -2,7 +2,7 @@ module Main where
 
 import           Cuttlefish
 import           Options.Applicative
-import qualified Data.Text.IO                          as T
+import qualified Data.Text.IO        as T
 import           Text.Pretty.Simple
 
 data Options = Options { infile :: FilePath }

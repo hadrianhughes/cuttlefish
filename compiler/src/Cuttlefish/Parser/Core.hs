@@ -1,5 +1,6 @@
 module Cuttlefish.Parser.Core where
 
+import           Control.Applicative (liftA2)
 import           Data.Char
 import           Text.Megaparsec
 import           Text.Megaparsec.Char
@@ -13,47 +14,55 @@ import           Cuttlefish.Ast
 
 type Parser = Parsec Void Text
 
-type Parser' a = Parser () -> Parser a
-
-fsc :: Parser ()
-fsc = L.space space1 lineCmnt empty
+sc :: Parser ()
+sc = L.space space1 lineCmnt empty
   where
     lineCmnt = L.skipLineComment "//"
 
-hsc :: Parser ()
-hsc = L.space hspace1 lineCmnt empty
-  where
-    lineCmnt = L.skipLineComment "//"
+lexeme :: Parser a -> Parser a
+lexeme = L.lexeme sc
 
-lexeme :: Parser () -> Parser a -> Parser a
-lexeme sc = L.lexeme sc
+symbol :: Text -> Parser Text
+symbol = L.symbol sc
 
-integer :: Parser Int
-integer = lexeme hsc (L.signed hsc L.decimal)
+int :: Parser Int
+int = lexeme (L.signed sc L.decimal)
 
 float :: Parser Double
-float = L.signed hsc (L.signed hsc L.float)
+float = lexeme (L.signed sc L.float)
 
 parens :: Parser a -> Parser a
-parens = between (L.symbol fsc "(") (L.symbol fsc ")")
+parens = between (symbol "(") (symbol ")")
 
 brackets :: Parser a -> Parser a
-brackets = between (L.symbol fsc "[") (L.symbol fsc "]")
+brackets = between (symbol "[") (symbol "]")
 
 braces :: Parser a -> Parser a
-braces = between (L.symbol fsc "{") (L.symbol fsc "}")
+braces = between (symbol "{") (symbol "}")
+
+angles :: Parser a -> Parser a
+angles = between (symbol "<") (symbol ">")
 
 squotes :: Parser a -> Parser a
-squotes = between (L.symbol hsc "'") (L.symbol fsc "'")
+squotes = between (symbol "'") (symbol "'")
 
 dquotes :: Parser a -> Parser a
-dquotes = between (L.symbol hsc "\"") (L.symbol fsc "\"")
+dquotes = between (symbol "\"") (symbol "\"")
 
 comma :: Parser ()
-comma = void $ L.symbol fsc ","
+comma = void $ symbol ","
 
-rword :: Parser () -> Text -> Parser ()
-rword sc w = (lexeme sc . try) (string w *> notFollowedBy alphaNumChar)
+dot :: Parser ()
+dot = void $ symbol "."
+
+colon :: Parser ()
+colon = void $ symbol ":"
+
+pipe :: Parser ()
+pipe = void $ symbol "|"
+
+rword :: Text -> Parser ()
+rword w = (lexeme . try) (string w *> notFollowedBy alphaNumChar)
 
 rws :: [Text]
 rws =
@@ -62,34 +71,49 @@ rws =
   , "float"
   , "char"
   , "if"
+  , "then"
   , "else"
   , "let"
   , "mut"
   , "for"
   , "in"
+  , "of"
   , "class"
   , "member"
-  , "of"
   , "return"
-  , "match" ]
+  , "match"
+  , "func"
+  , "frag" ]
+
+checkIsRW :: Text -> Parser Text
+checkIsRW w = if w `elem` rws
+  then fail $ "keyword " <> show w <> " cannot be an identifier"
+  else return w
 
 binopChars :: [Char]
 binopChars = "&|=!><+-*/^"
 
 binop :: Parser Text
-binop = (L.lexeme hsc . try) (T.pack <$> some (oneOf binopChars))
+binop = (lexeme . try) (T.pack <$> some (oneOf binopChars))
 
-typeIdentifier :: Parser' Text
-typeIdentifier sc = (lexeme sc . try) p
+typeIdentifier :: Parser Text
+typeIdentifier = (lexeme . try) p
   where
     p = fmap T.pack $ (:) <$> upperChar
                           <*> many alphaNumChar
 
-identifier :: Parser () -> Parser Text
-identifier sc = (L.lexeme sc . try) (p >>= check)
+identifier :: Parser Text
+identifier = (lexeme . try) (p >>= checkIsRW)
   where
     p = fmap T.pack $ (:) <$> lowerChar
-                          <*> many (alphaNumChar <|> single '_')
-    check x = if x `elem` rws
-      then fail $ "keyword " <> show x <> "cannot be used as an identifier."
-      else return x
+                          <*> many alphaNumChar
+
+identifier' :: Parser Text
+identifier' = (T.pack <$> some alphaNumChar) >>= checkIsRW
+
+maybeList :: Maybe [a] -> [a]
+maybeList (Just xs) = xs
+maybeList Nothing   = []
+
+sepBy2 :: Parser a -> Parser () -> Parser [a]
+sepBy2 p sep = (liftA2 (:)) (p <* sep) (p `sepBy1` sep)

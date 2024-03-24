@@ -1,82 +1,212 @@
 module Cuttlefish.Parser.Body where
 
-import           Data.Char
-import qualified Data.Text              as T
-import           Data.Maybe
-import           Text.Megaparsec
-import           Text.Megaparsec.Char
-import qualified Text.Megaparsec.Char.Lexer as L
-import           Cuttlefish.Parser.Core
-import           Cuttlefish.Ast
+import Data.Char
+import Data.Maybe
+import Text.Megaparsec
+import Text.Megaparsec.Char
+import Data.Text (Text)
+import Control.Monad ( void )
+import Cuttlefish.Ast
+import Cuttlefish.Parser.Core
+import Cuttlefish.Parser.Types
 
-literalP :: Parser Expr
-literalP = IntLit   <$> integer
-       <|> FloatLit <$> float
-       <|> StrLit   <$> dquotes (takeWhileP Nothing (/= '"'))
-       <|> CharLit  <$> squotes (ord <$> satisfy (`notElem` ['\\', '\'']) <|> (single '\\' >> integer))
+-- Expressions
+
+data ChainTerm = StructTerm Text
+               | ListTerm   Expr
+               | FuncTerm   [Expr] Bool
+
+data BinopTerm = BinopTerm Text Expr
+
+chainAcc :: Expr -> ChainTerm -> Expr
+chainAcc e c =
+  case c of
+    (StructTerm field)     -> StructAccess e field
+    (ListTerm index)       -> ListAccess e index
+    (FuncTerm args isFrag) -> FuncCall e args isFrag
+
+chainExprP :: Parser Expr
+chainExprP = do
+  start <- try exprP
+  terms <- many term
+  return $ foldl chainAcc start terms
+  where
+    term :: Parser ChainTerm
+    term = StructTerm   <$> (dot *> identifier)
+       <|> ListTerm     <$> brackets topLevelExprP
+       <|> FuncTerm     <$> (parens $ topLevelExprP `sepBy` comma) <*> (isJust <$> optional (symbol "!"))
 
 operatorP :: Parser Expr
 operatorP = do
-  arg1 <- rank1ExprP <* hsc
-  fn   <- binop <* hsc
-  arg2 <- rank1ExprP
-  return $ FuncCall (Reference [fn]) [arg1, arg2]
+  start <- try chainExprP <|> exprP
+  terms <- many $ BinopTerm <$> binop <*> (try blockExprP <|> try chainExprP <|> exprP)
+  return $ foldr (\(BinopTerm op arg2) expr -> FuncCall (VarRef op) [expr, arg2] False) start terms
 
-rank1ExprP :: Parser Expr
-rank1ExprP = Reference <$> identifier hsc `sepBy1` L.symbol hsc "."
-         <|> ListExpr  <$> brackets (rank3ExprP fsc `sepBy` comma)
-         <|> TupleExpr <$> parens (rank3ExprP fsc `sepBy1` comma)
-         <|> literalP
-         <|> parens (rank3ExprP fsc)
+literalP :: Parser Expr
+literalP = try (FloatLit <$> float)
+       <|> IntLit   <$> int
+       <|> CharLit  <$> squotes (satisfy (`notElem` ['\\', '\'']) <|> single '\\')
+       <|> StrLit   <$> dquotes (takeWhileP Nothing (/= '"'))
+       <|> (symbol "()" *> return UnitLit)
 
-rank2ExprP :: Parser' Expr
-rank2ExprP sc = expr <* sc
-  where
-    expr = try (DConstructorExpr <$> typeIdentifier hsc <*> many rank1ExprP)
-       <|> try (ListAccess       <$> rank1ExprP <*> brackets (rank3ExprP hsc))
-       <|> try (FuncCall         <$> rank1ExprP <*> some rank1ExprP)
-       <|> try operatorP
-       <|> rank1ExprP
-
-rank3ExprP :: Parser' Expr
-rank3ExprP sc = try (TernaryExpr <$> rank2ExprP sc <*> (L.symbol sc "?" *> rank2ExprP sc) <*> (L.symbol sc ":" *> rank2ExprP sc))
-            <|> rank2ExprP sc
+ifExprP :: Parser Expr
+ifExprP = IfExpr
+       <$> (rword "if" *> (try operatorP <|> try chainExprP <|> exprP))
+       <*> (rword "then" *> nestedExpr)
+       <*> (symbol "else" *> nestedExpr)
+       where
+        nestedExpr = try blockExprP <|> try operatorP <|> try chainExprP <|> exprP
 
 matchExprP :: Parser Expr
-matchExprP = MatchExpr <$> (rword hsc "match" *> identifier hsc) <*> braces (some option)
+matchExprP = MatchExpr
+  <$> (rword "match" *> bindP)
+  <*> braces (caseP `sepBy1` comma)
   where
-    option = do
-      bind <- rank2BindP
-      result <- L.symbol fsc "->" *> rank3ExprP fsc <* fsc
-      return (bind, result)
+    caseP = do
+      bind <- bindP
+      expr <- symbol "->" *> topLevelExprP
+      return (bind, expr)
 
-rank1BindP :: Parser Bind
-rank1BindP = ListBind    <$> brackets (rank2BindP `sepBy` comma)
-    <|> try (TupleBind   <$> parens (rank2BindP `sepBy1` comma))
-    <|> SimpleBind       <$> identifier hsc
-    <|> parens rank2BindP
+exprP :: Parser Expr
+exprP = try (ListExpr <$> brackets (topLevelExprP `sepBy` comma))
+    <|> try (TupleExpr <$> parens (topLevelExprP `sepBy2` comma))
+    <|> try matchExprP
+    <|> try (parens topLevelExprP)
+    <|> try (VarRef <$> identifier)
+    <|> literalP
 
-rank2BindP :: Parser Bind
-rank2BindP = try (DConstructorBind <$> typeIdentifier hsc <*> many (identifier hsc))
-         <|> rank1BindP
+blockExprP :: Parser Expr
+blockExprP = BlockExpr <$> blockP
 
-defnP :: Parser Defn
-defnP = try (Defn <$> identifier hsc <*> many rank1BindP <*> (L.symbol hsc "=" *> (matchExprP <|> rank3ExprP fsc)))
-    <|> AlgoDefn <$> identifier hsc <*> many rank1BindP <*> algoP
+topLevelExprP :: Parser Expr
+topLevelExprP = try blockExprP
+            <|> try ifExprP
+            <|> try operatorP
+            <|> try chainExprP
+            <|> exprP
 
-algoP :: Parser Algo
-algoP = Algo <$> braces (many statementP)
+bindP :: Parser Bind
+bindP = try (TupleBind <$> parens (bindP `sepBy1` comma))
+    <|> ConstructorBind
+      <$> typeIdentifier
+      <*> (maybeList <$> optional (parens (identifier `sepBy1` comma)))
+    <|> SimpleBind <$> identifier
+
+constDefnP :: Parser ConstDefn
+constDefnP = ConstDefn
+  <$> (rword "let" *> identifier)
+  <*> optional (symbol ":" *> openTypeExprP)
+  <*> (symbol "=" *> topLevelExprP)
+
+-- Functions
+
+argP :: Parser (Bind, TypeExpr)
+argP = do
+  arg <- bindP
+  typ <- colon *> openTypeExprP
+  return (arg, typ)
+
+argFold :: (a, TypeExpr) -> TypeExpr -> TypeExpr
+argFold (_, t1) t2 = FuncType t1 t2
+
+funcDefnP :: Parser FuncDefn
+funcDefnP = do
+  name     <- rword "func" *> identifier
+  typeVars <- optional (angles $ some typeVarDefnP)
+  args     <- parens $ argP `sepBy` comma
+  rtnType  <- optional $ symbol "->" *> openTypeExprP
+  body     <- (symbol "=" *> topLevelExprP) <|> blockExprP
+
+  let rtnType'  = fromMaybe (PrimType Unit) rtnType
+      funcType  = foldr argFold rtnType' args
+      typeVars' = maybeList typeVars
+
+  return $ FuncDefn
+    name
+    funcType
+    typeVars'
+    (map fst args)
+    body
+
+-- Supports typing a function with a predefined type
+funcDefnP' :: Parser FuncDefn
+funcDefnP' = do
+  (name, funcType) <- rword "func" *> parens nameTypeP
+  typeVars         <- optional (angles $ some typeVarDefnP)
+  args             <- parens (bindP `sepBy` comma)
+  body             <- (symbol "=" *> topLevelExprP) <|> blockExprP
+
+  let typeVars' = maybeList typeVars
+
+  return $ FuncDefn
+    name
+    funcType
+    typeVars'
+    args
+    body
+  where
+    nameTypeP = do
+      name <- identifier
+      typ  <- colon *> openTypeExprP
+      return (name, typ)
+
+fragDefnP :: Parser FuncDefn
+fragDefnP = do
+  name     <- rword "frag" *> identifier
+  typeVars <- optional (angles $ some typeVarDefnP)
+  args     <- parens $ argP `sepBy` comma
+  rtnType  <- optional $ symbol "->" *> openTypeExprP
+  body     <- blockExprP
+
+  let rtnType'  = fromMaybe (PrimType Unit) rtnType
+      funcType  = foldr argFold (FragType rtnType') args
+      typeVars' = maybeList typeVars
+
+  return $ FuncDefn
+    name
+    funcType
+    typeVars'
+    (map fst args)
+    body
+
+-- Statements
+
+ifStmtP :: Parser Statement
+ifStmtP = IfStmt
+  <$> (rword "if" *> (try operatorP <|> try chainExprP <|> exprP))
+  <*> (rword "then" *> blockP)
+  <*> optional (rword "else" *> blockP)
+
+varDeclP :: Parser Statement
+varDeclP = VarDecl
+  <$> (rword "let" *> identifier)
+  <*> optional (symbol ":" *> openTypeExprP)
+  <*> (symbol "=" *> topLevelExprP)
+
+assignStmtP :: Parser Statement
+assignStmtP = AssignStmt
+          <$> (try chainExprP <|> exprP)
+          <*> (symbol "=" *> topLevelExprP)
+
+exprStmtP :: Parser Statement
+exprStmtP = ExprStmt <$> topLevelExprP
+
+forLoopP :: Parser Statement
+forLoopP = ForLoop
+       <$> (rword "for" *> bindP)
+       <*> (rword "in" *> (try chainExprP <|> exprP))
+       <*> blockP
+
+returnStmtP :: Parser Statement
+returnStmtP = ReturnStmt <$> (rword "return" *> topLevelExprP)
+
+blockP :: Parser [Statement]
+blockP = braces (statementP `sepBy` eol)
 
 statementP :: Parser Statement
-statementP = IfStmt           <$> (rword hsc "if" *> rank3ExprP hsc) <*> algoP <*> optional (rword hsc "else" *> algoP)
-         <|> ForLoop          <$> (rword hsc "for" *> rank1BindP) <*> (rword hsc "in" *> rank3ExprP hsc) <*> algoP
-         <|> varDeclP
-         <|> Return           <$> (rword hsc "return" *> rank3ExprP fsc)
-         <|> try (Destructure <$> rank2BindP <*> (L.symbol fsc "=" *> rank3ExprP fsc))
-         <|> Expr             <$> rank3ExprP fsc
-         where
-          varDeclP = rword hsc "let" *> do
-            mut   <- optional (rword hsc "mut")
-            name  <- identifier hsc
-            value <- L.symbol fsc "=" *> (matchExprP <|> rank3ExprP fsc)
-            return $ VarDecl name value (isJust mut)
+statementP = try ifStmtP
+         <|> try varDeclP
+         <|> try assignStmtP
+         <|> try exprStmtP
+         <|> try forLoopP
+         <|> returnStmtP
