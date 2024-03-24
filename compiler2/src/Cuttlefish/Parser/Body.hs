@@ -128,6 +128,7 @@ funcDefnP = do
     (map fst args)
     body
 
+-- Supports typing a function with a predefined type
 funcDefnP' :: Parser FuncDefn
 funcDefnP' = do
   (name, funcType) <- rword "func" *> parens nameTypeP
