@@ -100,6 +100,9 @@ identifier = (lexeme . try) p
     p = fmap T.pack $ (:) <$> lowerChar
                           <*> many alphaNumChar
 
+identifier' :: Parser Text
+identifier' = T.pack <$> some alphaNumChar
+
 maybeList :: Maybe [a] -> [a]
 maybeList (Just xs) = xs
 maybeList Nothing   = []

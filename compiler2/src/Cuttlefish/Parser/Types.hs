@@ -13,7 +13,8 @@ primTypeP = Int   <$ rword "int"
         <|> Unit  <$ symbol "()"
 
 typeVarDefnP :: Parser TypeVarDefn
-typeVarDefnP = TypeVarDefn <$> optional typeIdentifier <*> identifier
+typeVarDefnP = try (TypeVarDefn <$> optional typeIdentifier <*> identifier')
+  <|> TypeVarDefn <$> (return Nothing) <*> identifier'
 
 dataConstructorP :: Parser (Text, [TypeExpr])
 dataConstructorP = do
