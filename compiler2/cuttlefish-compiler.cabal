@@ -30,6 +30,7 @@ library
     Cuttlefish.Parser.Expr
     Cuttlefish.Parser.Func
     Cuttlefish.Parser.Core
+    Cuttlefish.Parser.Statement
     Cuttlefish.Parser.Types
   hs-source-dirs:
     src

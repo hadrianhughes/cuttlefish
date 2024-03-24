@@ -62,7 +62,7 @@ data Statement = IfStmt { ifCond :: Expr
                         , ifThen :: [Statement]
                         , ifElse :: Maybe [Statement] }
                | VarDecl { varName  :: Text
-                         , varType  :: TypeExpr
+                         , varType  :: Maybe TypeExpr
                          , varValue :: Expr }
                | AssignStmt Expr Expr
                | ExprStmt Expr
