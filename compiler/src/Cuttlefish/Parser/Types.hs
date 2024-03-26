@@ -28,7 +28,7 @@ closedTypeExprP = try (ListType    <$> brackets openTypeExprP)
               <|> try (StructType  <$> braces (keyValPair `sepBy` comma))
               <|> try (SetType     <$> braces openTypeExprP)
               <|> try (Constructor <$> dataConstructorP `sepBy1` pipe)
-              <|> try (FragType    <$> (rword "frag" *> angles openTypeExprP))
+              <|> try (EffectType  <$> (rword "effect" *> angles openTypeExprP))
               <|> try (PrimType    <$> primTypeP)
               <|> TypeVar          <$> identifier
               where

@@ -10,7 +10,7 @@ data TypeExpr = FuncType    TypeExpr TypeExpr
               | StructType  [(Text, TypeExpr)]
               | SetType     TypeExpr
               | Constructor [(Text, [TypeExpr])]
-              | FragType    TypeExpr
+              | EffectType  TypeExpr
               | TypeVar     Text
               | PrimType    PrimType
               deriving Show
@@ -26,7 +26,8 @@ data Expr = VarRef       Text
           | ListAccess   Expr Expr
           | StructAccess Expr Text
           | IfExpr       Expr Expr Expr
-          | FuncCall     { call :: Expr, callArgs :: [Expr], callingFrag :: Bool }
+          | FuncCall     { call :: Expr, callArgs :: [Expr] }
+          | EffectRun    Expr
           | ListExpr     [Expr]
           | TupleExpr    [Expr]
           | MatchExpr    Bind [(Bind, Expr)]

@@ -83,7 +83,7 @@ rws =
   , "return"
   , "match"
   , "func"
-  , "frag" ]
+  , "effect" ]
 
 checkIsRW :: Text -> Parser Text
 checkIsRW w = if w `elem` rws

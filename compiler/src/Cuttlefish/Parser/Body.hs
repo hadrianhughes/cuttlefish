@@ -14,16 +14,16 @@ import Cuttlefish.Parser.Types
 
 data ChainTerm = StructTerm Text
                | ListTerm   Expr
-               | FuncTerm   [Expr] Bool
+               | FuncTerm   [Expr]
 
 data BinopTerm = BinopTerm Text Expr
 
 chainAcc :: Expr -> ChainTerm -> Expr
 chainAcc e c =
   case c of
-    (StructTerm field)     -> StructAccess e field
-    (ListTerm index)       -> ListAccess e index
-    (FuncTerm args isFrag) -> FuncCall e args isFrag
+    (StructTerm field) -> StructAccess e field
+    (ListTerm index)   -> ListAccess e index
+    (FuncTerm args)    -> FuncCall e args
 
 chainExprP :: Parser Expr
 chainExprP = do
@@ -34,13 +34,13 @@ chainExprP = do
     term :: Parser ChainTerm
     term = StructTerm   <$> (dot *> identifier)
        <|> ListTerm     <$> brackets topLevelExprP
-       <|> FuncTerm     <$> (parens $ topLevelExprP `sepBy` comma) <*> (isJust <$> optional (symbol "!"))
+       <|> FuncTerm     <$> (parens $ topLevelExprP `sepBy` comma)
 
 operatorP :: Parser Expr
 operatorP = do
   start <- try chainExprP <|> exprP
   terms <- many $ BinopTerm <$> binop <*> (try blockExprP <|> try chainExprP <|> exprP)
-  return $ foldr (\(BinopTerm op arg2) expr -> FuncCall (VarRef op) [expr, arg2] False) start terms
+  return $ foldr (\(BinopTerm op arg2) expr -> FuncCall (VarRef op) [expr, arg2]) start terms
 
 literalP :: Parser Expr
 literalP = try (FloatLit <$> float)
@@ -78,10 +78,16 @@ exprP = try (ListExpr <$> brackets (topLevelExprP `sepBy` comma))
 blockExprP :: Parser Expr
 blockExprP = BlockExpr <$> blockP
 
+effectRunP :: Parser Expr
+effectRunP = EffectRun <$> expr <* symbol "!"
+  where
+    expr = try chainExprP <|> (VarRef <$> identifier)
+
 topLevelExprP :: Parser Expr
 topLevelExprP = try blockExprP
             <|> try ifExprP
             <|> try operatorP
+            <|> try effectRunP
             <|> try chainExprP
             <|> exprP
 
@@ -150,16 +156,16 @@ funcDefnP' = do
       typ  <- colon *> openTypeExprP
       return (name, typ)
 
-fragDefnP :: Parser FuncDefn
-fragDefnP = do
-  name     <- rword "frag" *> identifier
+effectDefnP :: Parser FuncDefn
+effectDefnP = do
+  name     <- rword "effect" *> identifier
   typeVars <- optional (angles $ some typeVarDefnP)
   args     <- parens $ argP `sepBy` comma
   rtnType  <- optional $ symbol "->" *> openTypeExprP
   body     <- blockExprP
 
   let rtnType'  = fromMaybe (PrimType Unit) rtnType
-      funcType  = foldr argFold (FragType rtnType') args
+      funcType  = foldr argFold (EffectType rtnType') args
       typeVars' = maybeList typeVars
 
   return $ FuncDefn
