@@ -14,52 +14,53 @@ import           Cuttlefish.Ast
 
 type Parser = Parsec Void Text
 
-sc :: Parser ()
-sc = L.space space1 lineCmnt empty
-  where
-    lineCmnt = L.skipLineComment "//"
+lineCmnt :: Parser ()
+lineCmnt = L.skipLineComment "//"
+
+fsc :: Parser ()
+fsc = L.space space1 lineCmnt empty
+
+hsc :: Parser ()
+hsc = L.space hspace1 lineCmnt empty
 
 lexeme :: Parser a -> Parser a
-lexeme = L.lexeme sc
-
-symbol :: Text -> Parser Text
-symbol = L.symbol sc
+lexeme = L.lexeme hsc
 
 int :: Parser Int
-int = lexeme (L.signed sc L.decimal)
+int = lexeme (L.signed hsc L.decimal)
 
 float :: Parser Double
-float = lexeme (L.signed sc L.float)
+float = lexeme (L.signed hsc L.float)
 
-parens :: Parser a -> Parser a
-parens = between (symbol "(") (symbol ")")
+parens :: Parser () -> Parser a -> Parser a
+parens sc = between (L.symbol sc "(") (L.symbol sc ")")
 
-brackets :: Parser a -> Parser a
-brackets = between (symbol "[") (symbol "]")
+brackets :: Parser () -> Parser a -> Parser a
+brackets sc = between (L.symbol sc "[") (L.symbol sc "]")
 
-braces :: Parser a -> Parser a
-braces = between (symbol "{") (symbol "}")
+braces :: Parser () -> Parser a -> Parser a
+braces sc = between (L.symbol sc "{") (L.symbol sc "}")
 
-angles :: Parser a -> Parser a
-angles = between (symbol "<") (symbol ">")
+angles :: Parser () -> Parser a -> Parser a
+angles sc = between (L.symbol sc "<") (L.symbol sc ">")
 
 squotes :: Parser a -> Parser a
-squotes = between (symbol "'") (symbol "'")
+squotes = between (L.symbol hsc "'") (L.symbol hsc "'")
 
 dquotes :: Parser a -> Parser a
-dquotes = between (symbol "\"") (symbol "\"")
+dquotes = between (L.symbol hsc "\"") (L.symbol hsc "\"")
 
 comma :: Parser ()
-comma = void $ symbol ","
+comma = void $ L.symbol hsc ","
 
 dot :: Parser ()
-dot = void $ symbol "."
+dot = void $ L.symbol hsc "."
 
 colon :: Parser ()
-colon = void $ symbol ":"
+colon = void $ L.symbol hsc ":"
 
 pipe :: Parser ()
-pipe = void $ symbol "|"
+pipe = void $ L.symbol hsc "|"
 
 rword :: Text -> Parser ()
 rword w = (lexeme . try) (string w *> notFollowedBy alphaNumChar)

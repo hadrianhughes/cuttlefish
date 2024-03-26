@@ -31,7 +31,7 @@ funcDefns :: [ProgramRoot] -> [FuncDefn]
 funcDefns r = [f | RFuncDefn f <- r]
 
 programP :: Parser Program
-programP = between sc eof $ do
+programP = between fsc eof $ do
   roots <- programRootsP
   return $ Program
     (typeDefns roots)

@@ -1,14 +1,15 @@
 module Cuttlefish.Parser.Body where
 
-import Data.Char
-import Data.Maybe
-import Text.Megaparsec
-import Text.Megaparsec.Char
-import Data.Text (Text)
-import Control.Monad ( void )
-import Cuttlefish.Ast
-import Cuttlefish.Parser.Core
-import Cuttlefish.Parser.Types
+import           Data.Char
+import           Data.Maybe
+import           Text.Megaparsec
+import           Text.Megaparsec.Char
+import qualified Text.Megaparsec.Char.Lexer as L
+import           Data.Text (Text)
+import           Control.Monad ( void )
+import           Cuttlefish.Ast
+import           Cuttlefish.Parser.Core
+import           Cuttlefish.Parser.Types
 
 -- Expressions
 
@@ -33,8 +34,8 @@ chainExprP = do
   where
     term :: Parser ChainTerm
     term = StructTerm   <$> (dot *> identifier)
-       <|> ListTerm     <$> brackets topLevelExprP
-       <|> FuncTerm     <$> (parens $ topLevelExprP `sepBy` comma)
+       <|> ListTerm     <$> brackets fsc topLevelExprP
+       <|> FuncTerm     <$> (parens fsc $ topLevelExprP `sepBy` (comma <* fsc))
 
 operatorP :: Parser Expr
 operatorP = do
@@ -47,31 +48,31 @@ literalP = try (FloatLit <$> float)
        <|> IntLit   <$> int
        <|> CharLit  <$> squotes (satisfy (`notElem` ['\\', '\'']) <|> single '\\')
        <|> StrLit   <$> dquotes (takeWhileP Nothing (/= '"'))
-       <|> (symbol "()" *> return UnitLit)
+       <|> (L.symbol hsc "()" *> return UnitLit)
 
 ifExprP :: Parser Expr
 ifExprP = IfExpr
-       <$> (rword "if" *> (try operatorP <|> try chainExprP <|> exprP))
-       <*> (rword "then" *> nestedExpr)
-       <*> (symbol "else" *> nestedExpr)
+       <$> (rword "if" *> (try operatorP <|> try chainExprP <|> exprP) <* fsc)
+       <*> (rword "then" *> nestedExpr <* fsc)
+       <*> (rword "else" *> nestedExpr <* fsc)
        where
         nestedExpr = try blockExprP <|> try operatorP <|> try chainExprP <|> exprP
 
 matchExprP :: Parser Expr
 matchExprP = MatchExpr
   <$> (rword "match" *> bindP)
-  <*> braces (caseP `sepBy1` comma)
+  <*> braces fsc (caseP `sepBy1` (comma <* fsc))
   where
     caseP = do
       bind <- bindP
-      expr <- symbol "->" *> topLevelExprP
+      expr <- L.symbol fsc "->" *> topLevelExprP
       return (bind, expr)
 
 listExprP :: Parser Expr
-listExprP = ListExpr <$> brackets (topLevelExprP `sepBy` comma)
+listExprP = ListExpr <$> brackets fsc (topLevelExprP `sepBy` comma)
 
 tupleExprP :: Parser Expr
-tupleExprP = TupleExpr <$> parens (topLevelExprP `sepBy2` comma)
+tupleExprP = TupleExpr <$> parens fsc (topLevelExprP `sepBy2` comma)
 
 varRefP :: Parser Expr
 varRefP = VarRef <$> identifier
@@ -80,7 +81,7 @@ exprP :: Parser Expr
 exprP = try listExprP
     <|> try tupleExprP
     <|> try matchExprP
-    <|> try (parens topLevelExprP)
+    <|> try (parens fsc topLevelExprP)
     <|> try varRefP
     <|> literalP
 
@@ -88,7 +89,7 @@ blockExprP :: Parser Expr
 blockExprP = BlockExpr <$> blockP
 
 effectRunP :: Parser Expr
-effectRunP = EffectRun <$> expr <* symbol "!"
+effectRunP = EffectRun <$> expr <* L.symbol hsc "!"
   where
     expr = try chainExprP <|> (VarRef <$> identifier)
 
@@ -101,17 +102,17 @@ topLevelExprP = try blockExprP
             <|> exprP
 
 bindP :: Parser Bind
-bindP = try (TupleBind <$> parens (bindP `sepBy1` comma))
+bindP = try (TupleBind <$> parens hsc (bindP `sepBy1` comma))
     <|> ConstructorBind
       <$> typeIdentifier
-      <*> (maybeList <$> optional (parens (identifier `sepBy1` comma)))
+      <*> (maybeList <$> optional (parens hsc (identifier `sepBy1` comma)))
     <|> SimpleBind <$> identifier
 
 constDefnP :: Parser ConstDefn
 constDefnP = ConstDefn
   <$> (rword "let" *> identifier)
-  <*> optional (symbol ":" *> openTypeExprP)
-  <*> (symbol "=" *> topLevelExprP)
+  <*> optional (colon *> openTypeExprP)
+  <*> (L.symbol fsc "=" *> topLevelExprP)
 
 -- Functions
 
@@ -127,10 +128,10 @@ argFold (_, t1) t2 = FuncType t1 t2
 funcDefnP :: Parser FuncDefn
 funcDefnP = do
   name     <- rword "func" *> identifier
-  typeVars <- optional (angles $ some typeVarDefnP)
-  args     <- parens $ argP `sepBy` comma
-  rtnType  <- optional $ symbol "->" *> openTypeExprP
-  body     <- (symbol "=" *> topLevelExprP) <|> blockExprP
+  typeVars <- optional (angles hsc $ some typeVarDefnP)
+  args     <- parens fsc $ argP `sepBy` (comma <* fsc)
+  rtnType  <- optional $ L.symbol hsc "->" *> openTypeExprP
+  body     <- (L.symbol fsc "=" *> topLevelExprP) <|> blockExprP
 
   let rtnType'  = fromMaybe (PrimType Unit) rtnType
       funcType  = foldr argFold rtnType' args
@@ -146,10 +147,10 @@ funcDefnP = do
 -- Supports typing a function with a predefined type
 funcDefnP' :: Parser FuncDefn
 funcDefnP' = do
-  (name, funcType) <- rword "func" *> parens nameTypeP
-  typeVars         <- optional (angles $ some typeVarDefnP)
-  args             <- parens (bindP `sepBy` comma)
-  body             <- (symbol "=" *> topLevelExprP) <|> blockExprP
+  (name, funcType) <- rword "func" *> parens hsc nameTypeP
+  typeVars         <- optional (angles hsc $ some typeVarDefnP)
+  args             <- parens fsc (bindP `sepBy` (comma <* fsc))
+  body             <- (L.symbol hsc "=" *> topLevelExprP) <|> blockExprP
 
   let typeVars' = maybeList typeVars
 
@@ -168,9 +169,9 @@ funcDefnP' = do
 effectDefnP :: Parser FuncDefn
 effectDefnP = do
   name     <- rword "effect" *> identifier
-  typeVars <- optional (angles $ some typeVarDefnP)
-  args     <- parens $ argP `sepBy` comma
-  rtnType  <- optional $ symbol "->" *> openTypeExprP
+  typeVars <- optional (angles hsc $ some typeVarDefnP)
+  args     <- parens fsc $ argP `sepBy` (comma <* fsc)
+  rtnType  <- optional $ L.symbol hsc "->" *> openTypeExprP
   body     <- blockExprP
 
   let rtnType'  = fromMaybe (PrimType Unit) rtnType
@@ -195,13 +196,13 @@ ifStmtP = IfStmt
 varDeclP :: Parser Statement
 varDeclP = VarDecl
   <$> (rword "let" *> identifier)
-  <*> optional (symbol ":" *> openTypeExprP)
-  <*> (symbol "=" *> topLevelExprP)
+  <*> optional (colon *> openTypeExprP)
+  <*> (L.symbol fsc "=" *> topLevelExprP)
 
 assignStmtP :: Parser Statement
 assignStmtP = AssignStmt
           <$> (try chainExprP <|> exprP)
-          <*> (symbol "=" *> topLevelExprP)
+          <*> (L.symbol fsc "=" *> topLevelExprP)
 
 exprStmtP :: Parser Statement
 exprStmtP = ExprStmt <$> topLevelExprP
@@ -216,12 +217,14 @@ returnStmtP :: Parser Statement
 returnStmtP = ReturnStmt <$> (rword "return" *> topLevelExprP)
 
 blockP :: Parser [Statement]
-blockP = braces (statementP `sepBy` eol)
+blockP = braces fsc (many statementP)
 
 statementP :: Parser Statement
-statementP = try ifStmtP
-         <|> try varDeclP
-         <|> try assignStmtP
-         <|> try exprStmtP
-         <|> try forLoopP
-         <|> returnStmtP
+statementP = parse <* fsc
+  where
+    parse = try ifStmtP
+        <|> try varDeclP
+        <|> try assignStmtP
+        <|> try exprStmtP
+        <|> try forLoopP
+        <|> returnStmtP
