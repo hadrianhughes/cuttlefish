@@ -228,3 +228,32 @@ statementP = parse <* fsc
         <|> try exprStmtP
         <|> try forLoopP
         <|> returnStmtP
+
+-- Classes
+
+classDefn :: Parser ClassDefn
+classDefn = ClassDefn
+  <$> (rword "class" *> typeIdentifier)
+  <*> identifier
+  <*> braces fsc (many funcSig <* fsc)
+  where
+    funcSig :: Parser (Text, TypeExpr)
+    funcSig = rword "func" *> do
+      (name, args, rtn) <- sig
+      let args' = if null args then [PrimType Unit] else args
+          typ   = foldr FuncType rtn args'
+      return (name, typ)
+
+    effectSig :: Parser (Text, TypeExpr)
+    effectSig = rword "effect" *> do
+      (name, args, rtn) <- sig
+      let args' = if null args then [PrimType Unit] else args
+          typ   = foldr FuncType (EffectType rtn) args'
+      return (name, typ)
+
+    sig :: Parser (Text, [TypeExpr], TypeExpr)
+    sig = do
+      name <- identifier
+      args <- parens fsc (openTypeExprP `sepBy` (comma <* fsc))
+      rtn  <- L.symbol hsc "->" *> closedTypeExprP
+      return (name, args, rtn)

@@ -110,7 +110,7 @@ identifier = (lexeme . try) (p >>= checkIsRW)
                           <*> many alphaNumChar
 
 identifier' :: Parser Text
-identifier' = (T.pack <$> some alphaNumChar) >>= checkIsRW
+identifier' = T.pack <$> some alphaNumChar
 
 maybeList :: Maybe [a] -> [a]
 maybeList (Just xs) = xs

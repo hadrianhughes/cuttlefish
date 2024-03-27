@@ -20,7 +20,7 @@ typeVarDefnP = try (TypeVarDefn <$> optional typeIdentifier <*> identifier')
 dataConstructorP :: Parser (Text, [TypeExpr])
 dataConstructorP = do
   name <- typeIdentifier
-  args <- maybeList <$> optional (angles hsc $ openTypeExprP `sepBy1` comma) <* fsc
+  args <- maybeList <$> optional (parens hsc $ openTypeExprP `sepBy1` comma) <* fsc
   return (name, args)
 
 closedTypeExprP :: Parser TypeExpr
@@ -30,6 +30,7 @@ closedTypeExprP = try (ListType    <$> brackets hsc openTypeExprP)
               <|> try (SetType     <$> braces hsc openTypeExprP)
               <|> try (Constructor <$> dataConstructorP `sepBy1` pipe)
               <|> try (EffectType  <$> (rword "effect" *> angles hsc openTypeExprP))
+              <|> try (GenericType <$> identifier' <*> angles hsc openTypeExprP)
               <|> try (PrimType    <$> primTypeP)
               <|> TypeVar          <$> identifier
               where

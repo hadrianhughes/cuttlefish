@@ -11,6 +11,7 @@ data TypeExpr = FuncType    TypeExpr TypeExpr
               | SetType     TypeExpr
               | Constructor [(Text, [TypeExpr])]
               | EffectType  TypeExpr
+              | GenericType Text TypeExpr
               | TypeVar     Text
               | PrimType    PrimType
               deriving Show
@@ -49,7 +50,8 @@ data ConstDefn = ConstDefn { constName  :: Text
                            , constType  :: Maybe TypeExpr
                            , constValue :: Expr } deriving Show
 
-data ClassDefn = ClassDefn { classBind :: Bind
+data ClassDefn = ClassDefn { className :: Text
+                           , classVar  :: Text
                            , classSigs :: [(Text, TypeExpr)] } deriving Show
 
 data MembershipDefn = MembershipDefn { membType  :: Text
@@ -79,4 +81,5 @@ data Program = Program
   [TypeDefn]
   [ConstDefn]
   [FuncDefn]
+  [ClassDefn]
   deriving Show
