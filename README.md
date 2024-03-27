@@ -4,5 +4,4 @@ The language will not necessarily be called Cuttlefish--I just needed a repo nam
 
 ## Next
 
-- Implement statements
-- Implement imperative function definitions
+Fix match expressions. They're broken.
