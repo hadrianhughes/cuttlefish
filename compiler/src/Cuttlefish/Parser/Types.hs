@@ -14,8 +14,8 @@ primTypeP = Int   <$ rword "int"
         <|> Unit  <$ L.symbol hsc "()"
 
 typeVarDefnP :: Parser TypeVarDefn
-typeVarDefnP = try (TypeVarDefn <$> optional typeIdentifier <*> identifier')
-           <|> TypeVarDefn <$> (return Nothing) <*> identifier'
+typeVarDefnP = try (TypeVarDefn <$> optional typeIdentifier <*> identifier)
+           <|> TypeVarDefn <$> (return Nothing) <*> identifier
 
 dataConstructorP :: Parser (Text, [TypeExpr])
 dataConstructorP = do
@@ -30,7 +30,7 @@ closedTypeExprP = try (ListType    <$> brackets hsc openTypeExprP)
               <|> try (SetType     <$> braces hsc openTypeExprP)
               <|> try (Constructor <$> dataConstructorP `sepBy1` pipe)
               <|> try (EffectType  <$> (rword "effect" *> angles hsc openTypeExprP))
-              <|> try (GenericType <$> identifier' <*> angles hsc openTypeExprP)
+              <|> try (GenericType <$> identifier <*> angles hsc openTypeExprP)
               <|> try (PrimType    <$> primTypeP)
               <|> TypeVar          <$> identifier
               where

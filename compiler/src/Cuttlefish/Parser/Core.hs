@@ -107,11 +107,7 @@ identifier :: Parser Text
 identifier = (lexeme . try) (binopP <|> normalP)
   where
     binopP  = parens hsc binop
-    normalP = fmap T.pack $ (:) <$> lowerChar
-                               <*> many alphaNumChar
-
-identifier' :: Parser Text
-identifier' = T.pack <$> some alphaNumChar
+    normalP = T.pack <$> some alphaNumChar
 
 maybeList :: Maybe [a] -> [a]
 maybeList (Just xs) = xs
