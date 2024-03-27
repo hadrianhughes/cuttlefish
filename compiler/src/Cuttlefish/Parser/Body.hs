@@ -2,6 +2,7 @@ module Cuttlefish.Parser.Body where
 
 import           Data.Char
 import           Data.Maybe
+import           Data.Either
 import           Text.Megaparsec
 import           Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
@@ -257,3 +258,23 @@ classDefn = ClassDefn
       args <- parens fsc (openTypeExprP `sepBy` (comma <* fsc))
       rtn  <- L.symbol hsc "->" *> closedTypeExprP
       return (name, args, rtn)
+
+-- Membership
+
+memberDefn :: Parser MembershipDefn
+memberDefn = MembershipDefn
+  <$> (rword "member" *> typeIdentifier)
+  <*> typeIdentifier
+  <*> braces fsc (many impl <* fsc)
+  where
+    impl :: Parser MembershipImpl
+    impl = do
+      implType <- eitherP (rword "func") (rword "effect")
+      name <- identifier
+      args <- parens fsc (bindP `sepBy` (comma <* fsc))
+      body <- (L.symbol fsc "=" *> topLevelExprP) <|> blockExprP
+      return $ MembershipImpl
+        name
+        args
+        body
+        (isRight implType)

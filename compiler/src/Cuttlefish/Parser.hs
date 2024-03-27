@@ -11,17 +11,19 @@ import Cuttlefish.Parser.Core
 import Cuttlefish.Parser.Types
 import Cuttlefish.Ast
 
-data ProgramRoot = RTypeDefn  TypeDefn
-                 | RConstDefn ConstDefn
-                 | RFuncDefn  FuncDefn
-                 | RClassDefn ClassDefn
+data ProgramRoot = RTypeDefn   TypeDefn
+                 | RConstDefn  ConstDefn
+                 | RFuncDefn   FuncDefn
+                 | RClassDefn  ClassDefn
+                 | RMemberDefn MembershipDefn
 
 programRootsP :: Parser [ProgramRoot]
 programRootsP = many $
-                try (RTypeDefn  <$> typeDefnP)
-            <|> try (RConstDefn <$> constDefnP)
-            <|> try (RFuncDefn  <$> (try funcDefnP <|> try funcDefnP' <|> effectDefnP))
-            <|> try (RClassDefn <$> classDefn)
+                try (RTypeDefn   <$> typeDefnP)
+            <|> try (RConstDefn  <$> constDefnP)
+            <|> try (RFuncDefn   <$> (try funcDefnP <|> try funcDefnP' <|> effectDefnP))
+            <|> try (RClassDefn  <$> classDefn)
+            <|> try (RMemberDefn <$> memberDefn)
 
 typeDefns :: [ProgramRoot] -> [TypeDefn]
 typeDefns r = [td | RTypeDefn td <- r]
@@ -35,11 +37,15 @@ funcDefns r = [f | RFuncDefn f <- r]
 classDefns :: [ProgramRoot] -> [ClassDefn]
 classDefns r = [c | RClassDefn c <- r]
 
+memberDefns :: [ProgramRoot] -> [MembershipDefn]
+memberDefns r = [m | RMemberDefn m <- r]
+
 programP :: Parser Program
 programP = between fsc eof $ do
   roots <- programRootsP
   return $ Program
-    (typeDefns  roots)
-    (constDefns roots)
-    (funcDefns  roots)
-    (classDefns roots)
+    (typeDefns   roots)
+    (constDefns  roots)
+    (funcDefns   roots)
+    (classDefns  roots)
+    (memberDefns roots)

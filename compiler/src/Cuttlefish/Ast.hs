@@ -54,9 +54,14 @@ data ClassDefn = ClassDefn { className :: Text
                            , classVar  :: Text
                            , classSigs :: [(Text, TypeExpr)] } deriving Show
 
-data MembershipDefn = MembershipDefn { membType  :: Text
-                                     , membClass :: Text
-                                     , membDefns :: FuncDefn } deriving Show
+data MembershipImpl = MembershipImpl { implName     :: Text
+                                     , implArgs     :: [Bind]
+                                     , implBody     :: Expr
+                                     , implIsEffect :: Bool } deriving Show
+
+data MembershipDefn = MembershipDefn { membClass :: Text
+                                     , membType  :: Text
+                                     , membDefns :: [MembershipImpl] } deriving Show
 
 data Bind = SimpleBind      Text
           | TupleBind       [Bind]
@@ -82,4 +87,5 @@ data Program = Program
   [ConstDefn]
   [FuncDefn]
   [ClassDefn]
+  [MembershipDefn]
   deriving Show
