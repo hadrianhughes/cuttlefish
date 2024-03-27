@@ -104,10 +104,11 @@ typeIdentifier = (lexeme . try) p
                           <*> many alphaNumChar
 
 identifier :: Parser Text
-identifier = (lexeme . try) (p >>= checkIsRW)
+identifier = (lexeme . try) (binopP <|> normalP)
   where
-    p = fmap T.pack $ (:) <$> lowerChar
-                          <*> many alphaNumChar
+    binopP  = parens hsc binop
+    normalP = fmap T.pack $ (:) <$> lowerChar
+                               <*> many alphaNumChar
 
 identifier' :: Parser Text
 identifier' = T.pack <$> some alphaNumChar
