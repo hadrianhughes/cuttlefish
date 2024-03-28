@@ -33,16 +33,16 @@ float :: Parser Double
 float = lexeme (L.signed hsc L.float)
 
 parens :: Parser () -> Parser a -> Parser a
-parens sc = between (L.symbol sc "(") (L.symbol sc ")")
+parens sc = between (L.symbol sc "(") (sc *> L.symbol sc ")")
 
 brackets :: Parser () -> Parser a -> Parser a
-brackets sc = between (L.symbol sc "[") (L.symbol sc "]")
+brackets sc = between (L.symbol sc "[") (sc *> L.symbol sc "]")
 
 braces :: Parser () -> Parser a -> Parser a
-braces sc = between (L.symbol sc "{") (L.symbol sc "}")
+braces sc = between (L.symbol sc "{") (sc *> L.symbol sc "}")
 
 angles :: Parser () -> Parser a -> Parser a
-angles sc = between (L.symbol sc "<") (L.symbol sc ">")
+angles sc = between (L.symbol sc "<") (sc *> L.symbol sc ">")
 
 squotes :: Parser a -> Parser a
 squotes = between (L.symbol hsc "'") (L.symbol hsc "'")
