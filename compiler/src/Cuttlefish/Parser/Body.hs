@@ -75,12 +75,24 @@ listExprP = ListExpr <$> brackets fsc (topLevelExprP `sepBy` comma)
 tupleExprP :: Parser Expr
 tupleExprP = TupleExpr <$> parens fsc (topLevelExprP `sepBy2` comma)
 
+structExprP :: Parser Expr
+structExprP = StructExpr
+  <$> typeIdentifier
+  <*> braces fsc (keyValPair `sepBy` comma <* fsc)
+  where
+    keyValPair :: Parser (Text, Expr)
+    keyValPair = do
+      key <- identifier <* colon <* fsc
+      val <- exprP
+      return (key, val)
+
 varRefP :: Parser Expr
 varRefP = VarRef <$> identifier
 
 exprP :: Parser Expr
 exprP = try listExprP
     <|> try tupleExprP
+    <|> try structExprP
     <|> try matchExprP
     <|> try (parens fsc topLevelExprP)
     <|> try varRefP
