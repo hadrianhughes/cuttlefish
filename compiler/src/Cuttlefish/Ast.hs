@@ -78,7 +78,7 @@ data Statement = IfStmt { ifCond :: Expr
                | ExprStmt Expr
                | ForLoop { forBind :: Bind
                          , forList :: Expr
-                         , forBody :: [Statement] }
+                         , forBody :: Expr }
                | ReturnStmt Expr
                deriving (Show, Eq)
 

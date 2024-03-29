@@ -226,7 +226,7 @@ forLoopP :: Parser Statement
 forLoopP = ForLoop
        <$> (rword "for" *> bindP)
        <*> (rword "in" *> (try chainExprP <|> exprP))
-       <*> blockP
+       <*> blockExprP
 
 returnStmtP :: Parser Statement
 returnStmtP = ReturnStmt <$> (rword "return" *> topLevelExprP)
