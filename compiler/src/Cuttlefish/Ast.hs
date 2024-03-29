@@ -2,7 +2,7 @@ module Cuttlefish.Ast where
 
 import Data.Text (Text)
 
-data PrimType = Int | Float | Char | Unit deriving Show
+data PrimType = Int | Float | Char | Unit deriving (Show, Eq)
 
 data TypeExpr = FuncType    TypeExpr TypeExpr
               | ListType    TypeExpr
@@ -13,14 +13,14 @@ data TypeExpr = FuncType    TypeExpr TypeExpr
               | GenericType Text TypeExpr
               | TypeVar     Text
               | PrimType    PrimType
-              deriving Show
+              deriving (Show, Eq)
 
 data TypeVarDefn = TypeVarDefn { varDefnClass :: Maybe Text
-                               , varDefnName  :: Text } deriving Show
+                               , varDefnName  :: Text } deriving (Show, Eq)
 
 data TypeDefn = TypeDefn { typeName :: Text
                          , typeVars :: [TypeVarDefn]
-                         , typeExpr :: TypeExpr } deriving Show
+                         , typeExpr :: TypeExpr } deriving (Show, Eq)
 
 data Expr = VarRef       Text
           | ListAccess   Expr Expr
@@ -38,35 +38,35 @@ data Expr = VarRef       Text
           | StrLit       Text
           | FloatLit     Double
           | UnitLit
-          deriving Show
+          deriving (Show, Eq)
 
 data FuncDefn = FuncDefn { funcName     :: Text
                          , funcType     :: TypeExpr
                          , funcTypeVars :: [TypeVarDefn]
                          , funcArgs     :: [Bind]
-                         , funcBody     :: Expr } deriving Show
+                         , funcBody     :: Expr } deriving (Show, Eq)
 
 data ConstDefn = ConstDefn { constName  :: Text
                            , constType  :: Maybe TypeExpr
-                           , constValue :: Expr } deriving Show
+                           , constValue :: Expr } deriving (Show, Eq)
 
 data ClassDefn = ClassDefn { className :: Text
                            , classVar  :: Text
-                           , classSigs :: [(Text, TypeExpr)] } deriving Show
+                           , classSigs :: [(Text, TypeExpr)] } deriving (Show, Eq)
 
 data MembershipImpl = MembershipImpl { implName     :: Text
                                      , implArgs     :: [Bind]
                                      , implBody     :: Expr
-                                     , implIsEffect :: Bool } deriving Show
+                                     , implIsEffect :: Bool } deriving (Show, Eq)
 
 data MembershipDefn = MembershipDefn { membClass :: Text
                                      , membType  :: Text
-                                     , membDefns :: [MembershipImpl] } deriving Show
+                                     , membDefns :: [MembershipImpl] } deriving (Show, Eq)
 
 data Bind = SimpleBind      Text
           | TupleBind       [Bind]
           | ConstructorBind Text [Text]
-          deriving Show
+          deriving (Show, Eq)
 
 data Statement = IfStmt { ifCond :: Expr
                         , ifThen :: [Statement]
@@ -80,7 +80,7 @@ data Statement = IfStmt { ifCond :: Expr
                          , forList :: Expr
                          , forBody :: [Statement] }
                | ReturnStmt Expr
-               deriving Show
+               deriving (Show, Eq)
 
 data Program = Program
   [TypeDefn]
@@ -88,4 +88,4 @@ data Program = Program
   [FuncDefn]
   [ClassDefn]
   [MembershipDefn]
-  deriving Show
+  deriving (Show, Eq)
