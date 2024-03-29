@@ -122,10 +122,12 @@ bindP = try (TupleBind <$> parens hsc (bindP `sepBy1` comma))
     <|> SimpleBind <$> identifier
 
 constDefnP :: Parser ConstDefn
-constDefnP = ConstDefn
-  <$> (rword "let" *> identifier)
-  <*> optional (colon *> openTypeExprP)
-  <*> (L.symbol fsc "=" *> topLevelExprP)
+constDefnP = const <* fsc
+  where
+    const = ConstDefn
+        <$> (rword "let" *> identifier)
+        <*> optional (colon *> openTypeExprP)
+        <*> (L.symbol fsc "=" *> topLevelExprP)
 
 -- Functions
 
