@@ -4,7 +4,7 @@ import           Text.Megaparsec
 import           Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 import           Data.Text (Text)
-import           Cuttlefish.Ast
+import           Cuttlefish.Parser.Ast
 import           Cuttlefish.Parser.Core
 
 primTypeP :: Parser PrimType

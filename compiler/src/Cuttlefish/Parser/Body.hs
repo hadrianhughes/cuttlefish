@@ -8,7 +8,7 @@ import           Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 import           Data.Text (Text)
 import           Control.Monad ( void )
-import           Cuttlefish.Ast
+import           Cuttlefish.Parser.Ast
 import           Cuttlefish.Parser.Core
 import           Cuttlefish.Parser.Types
 

@@ -9,7 +9,7 @@ import Text.Megaparsec
 import Cuttlefish.Parser.Body
 import Cuttlefish.Parser.Core
 import Cuttlefish.Parser.Types
-import Cuttlefish.Ast
+import Cuttlefish.Parser.Ast
 
 data ProgramRoot = RTypeDefn   TypeDefn
                  | RConstDefn  ConstDefn

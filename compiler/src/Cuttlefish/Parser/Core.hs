@@ -10,7 +10,7 @@ import qualified Data.Text                  as T
 import           Control.Monad ( void )
 import           Data.Void
 import           Data.String.Conversions
-import           Cuttlefish.Ast
+import           Cuttlefish.Parser.Ast
 
 type Parser = Parsec Void Text
 

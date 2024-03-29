@@ -1,7 +1,7 @@
 module Cuttlefish.Semant.Sast where
 
 import Data.Text (Text)
-import Cuttlefish.Ast
+import Cuttlefish.Parser.Ast
 
 data Type = PrimType    PrimType
           | FuncType    Type Type

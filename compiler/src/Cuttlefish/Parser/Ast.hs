@@ -1,4 +1,4 @@
-module Cuttlefish.Ast where
+module Cuttlefish.Parser.Ast where
 
 import Data.Text (Text)
 
