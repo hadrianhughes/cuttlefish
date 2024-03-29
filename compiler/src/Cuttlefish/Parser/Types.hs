@@ -27,7 +27,6 @@ closedTypeExprP :: Parser TypeExpr
 closedTypeExprP = try (ListType    <$> brackets hsc openTypeExprP)
               <|> try (TupleType   <$> parens hsc (openTypeExprP `sepBy1` comma))
               <|> try (StructType  <$> braces fsc (keyValPair `sepBy` (comma <* fsc)))
-              <|> try (SetType     <$> braces hsc openTypeExprP)
               <|> try (Constructor <$> dataConstructorP `sepBy1` pipe)
               <|> try (EffectType  <$> (rword "effect" *> angles hsc openTypeExprP))
               <|> try (GenericType <$> identifier <*> angles hsc openTypeExprP)
