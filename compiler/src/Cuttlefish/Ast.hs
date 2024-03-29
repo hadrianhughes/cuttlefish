@@ -82,10 +82,9 @@ data Statement = IfStmt { ifCond :: Expr
                | ReturnStmt Expr
                deriving (Show, Eq)
 
-data Program = Program
-  [TypeDefn]
-  [ConstDefn]
-  [FuncDefn]
-  [ClassDefn]
-  [MembershipDefn]
-  deriving (Show, Eq)
+data Program = Program { pTypes   :: [TypeDefn]
+                       , pConsts  :: [ConstDefn]
+                       , pFuncs   :: [FuncDefn]
+                       , pClasses :: [ClassDefn]
+                       , pMembers :: [MembershipDefn] }
+                       deriving (Show, Eq)
