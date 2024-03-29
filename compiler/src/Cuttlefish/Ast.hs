@@ -8,7 +8,7 @@ data TypeExpr = FuncType    TypeExpr TypeExpr
               | ListType    TypeExpr
               | TupleType   [TypeExpr]
               | StructType  [(Text, TypeExpr)]
-              | Constructor [(Text, [TypeExpr])]
+              | EnumType    [(Text, [TypeExpr])]
               | EffectType  TypeExpr
               | GenericType Text TypeExpr
               | TypeVar     Text
