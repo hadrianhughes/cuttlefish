@@ -10,7 +10,7 @@ data TypeExpr = FuncType    TypeExpr TypeExpr
               | StructType  [(Text, TypeExpr)]
               | EnumType    [(Text, [TypeExpr])]
               | EffectType  TypeExpr
-              | GenericType Text TypeExpr
+              | GenericType Text [TypeExpr]
               | TypeVar     Text
               | PrimType    PrimType
               deriving (Show, Eq)

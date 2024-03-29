@@ -29,7 +29,7 @@ closedTypeExprP = try (ListType    <$> brackets hsc openTypeExprP)
               <|> try (StructType  <$> braces fsc (keyValPair `sepBy` (comma <* fsc)))
               <|> try (EnumType    <$> dataConstructorP `sepBy1` pipe)
               <|> try (EffectType  <$> (rword "effect" *> angles hsc openTypeExprP))
-              <|> try (GenericType <$> identifier <*> angles hsc openTypeExprP)
+              <|> try (GenericType <$> identifier <*> angles hsc (openTypeExprP `sepBy1` comma))
               <|> try (PrimType    <$> primTypeP)
               <|> TypeVar          <$> identifier
               where
