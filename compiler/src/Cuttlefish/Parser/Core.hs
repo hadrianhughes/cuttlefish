@@ -41,6 +41,9 @@ brackets sc = between (L.symbol sc "[") (sc *> L.symbol sc "]")
 braces :: Parser () -> Parser a -> Parser a
 braces sc = between (L.symbol sc "{") (sc *> L.symbol sc "}")
 
+manyInBraces :: Parser a -> Parser [a]
+manyInBraces p = braces fsc (manyTill (p <* fsc) (lookAhead $ L.symbol fsc "}"))
+
 angles :: Parser () -> Parser a -> Parser a
 angles sc = between (L.symbol sc "<") (sc *> L.symbol sc ">")
 

@@ -18,12 +18,11 @@ data ProgramRoot = RTypeDefn   TypeDefn
                  | RMemberDefn MembershipDefn
 
 programRootsP :: Parser [ProgramRoot]
-programRootsP = many $
-                try (RTypeDefn   <$> typeDefnP)
-            <|> try (RConstDefn  <$> constDefnP)
-            <|> try (RFuncDefn   <$> (try funcDefnP <|> try funcDefnP' <|> effectDefnP))
-            <|> try (RClassDefn  <$> classDefn)
-            <|> try (RMemberDefn <$> memberDefn)
+programRootsP = many $ try (RTypeDefn   <$> typeDefnP)
+                   <|> try (RConstDefn  <$> constDefnP)
+                   <|> try (RFuncDefn   <$> (try funcDefnP <|> try funcDefnP' <|> effectDefnP))
+                   <|> try (RClassDefn  <$> classDefnP)
+                   <|> try (RMemberDefn <$> memberDefnP)
 
 typeDefns :: [ProgramRoot] -> [TypeDefn]
 typeDefns r = [td | RTypeDefn td <- r]

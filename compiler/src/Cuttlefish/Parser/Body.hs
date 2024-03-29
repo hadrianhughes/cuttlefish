@@ -244,11 +244,11 @@ statementP = parse <* fsc
 
 -- Classes
 
-classDefn :: Parser ClassDefn
-classDefn = ClassDefn
+classDefnP :: Parser ClassDefn
+classDefnP = ClassDefn
   <$> (rword "class" *> typeIdentifier)
   <*> identifier
-  <*> braces fsc (many funcSig <* fsc)
+  <*> manyInBraces funcSig
   where
     funcSig :: Parser (Text, TypeExpr)
     funcSig = rword "func" *> do
@@ -273,11 +273,11 @@ classDefn = ClassDefn
 
 -- Membership
 
-memberDefn :: Parser MembershipDefn
-memberDefn = MembershipDefn
+memberDefnP :: Parser MembershipDefn
+memberDefnP = MembershipDefn
   <$> (rword "member" *> typeIdentifier)
   <*> typeIdentifier
-  <*> braces fsc (many impl <* fsc)
+  <*> manyInBraces impl
   where
     impl :: Parser MembershipImpl
     impl = do
