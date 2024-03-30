@@ -14,18 +14,25 @@ data Env = Env { typeDefns :: TypeDefns }
 
 type Semant = ExceptT SemantError (State Env)
 
-typeofTypeExpr :: TypeExpr -> Type
+typeofTypeExpr :: TypeExpr -> Semant Type
 typeofTypeExpr expr =
   case expr of
-    (FuncTypeExpr e1 e2)    -> FuncType (typeofTypeExpr e1) (typeofTypeExpr e2)
-    (ListTypeExpr e)        -> ListType (typeofTypeExpr e)
-    (TupleTypeExpr es)      -> TupleType (map typeofTypeExpr es)
-    (StructTypeExpr fields) ->
-      StructType [(n, typeofTypeExpr e) | (n, e) <- fields]
-    (EnumTypeExpr cases)    ->
-      EnumType [(n, map typeofTypeExpr es) | (n, es) <- cases]
-    (EffectTypeExpr e)      -> EffectType (typeofTypeExpr e)
-    (PrimTypeExpr p)        -> PrimType p
+    (FuncTypeExpr e1 e2)    -> FuncType  <$> (typeofTypeExpr e1) <*> (typeofTypeExpr e2)
+    (ListTypeExpr e)        -> ListType  <$> (typeofTypeExpr e)
+    (TupleTypeExpr es)      -> TupleType <$> (mapM typeofTypeExpr es)
+    (StructTypeExpr fields) -> do
+      vals <- mapM (typeofTypeExpr . snd) fields
+      let keys = map fst fields
+      return (StructType $ zip keys vals)
+    (EnumTypeExpr cases)    -> EnumType   <$> mapM evalEnumCase cases
+    (EffectTypeExpr e)      -> EffectType <$> typeofTypeExpr e
+    (PrimTypeExpr p)        -> return $ PrimType p
+    (GenericTypeExpr _ _)   -> throwError (IllegalGeneric expr)
+    where
+      evalEnumCase :: (Text, [TypeExpr]) -> Semant (Text, [Type])
+      evalEnumCase (name, args) = do
+        args' <- mapM typeofTypeExpr args
+        return (name, args')
 
 checkTypeDefn :: TypeDefn -> Semant STypeDefn
 checkTypeDefn defn = do
@@ -33,7 +40,8 @@ checkTypeDefn defn = do
   let name = AST.typeName defn
   when (M.member name defns) $ throwError (DuplicateDefn name DTypeDefn)
 
-  let defn' = STypeDefn name (AST.typeVars defn) (typeofTypeExpr $ AST.typeExpr defn)
+  type' <- typeofTypeExpr $ AST.typeExpr defn
+  let defn' = STypeDefn name (AST.typeVars defn) type'
 
   modify $ \env -> env { typeDefns = M.insert name defn' defns }
 

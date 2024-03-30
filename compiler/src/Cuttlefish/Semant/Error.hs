@@ -28,4 +28,5 @@ data SemantError =
                     , loc :: Expr }
   | NonExhaustMatch { matchingTyp :: Type, loc :: Expr }
   | IllegalEffect   { loc :: Expr, func :: SFuncDefn }
+  | IllegalGeneric  TypeExpr
   deriving Show
