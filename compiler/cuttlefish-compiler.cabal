@@ -19,7 +19,7 @@ executable cuttlefish-compiler
     , optparse-applicative
     , pretty-simple
   hs-source-dirs:   app
-  default-extensions: OverloadedStrings
+  default-extensions: OverloadedStrings, LambdaCase
   default-language: Haskell2010
 
 library
@@ -42,5 +42,5 @@ library
     , string-conversions
     , containers
     , mtl
-  default-extensions: OverloadedStrings
+  default-extensions: OverloadedStrings, LambdaCase
   default-language: Haskell2010

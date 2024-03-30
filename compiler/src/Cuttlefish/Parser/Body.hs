@@ -21,11 +21,10 @@ data ChainTerm = StructTerm Text
 data BinopTerm = BinopTerm Text Expr
 
 chainAcc :: Expr -> ChainTerm -> Expr
-chainAcc e c =
-  case c of
-    (StructTerm field) -> StructAccess e field
-    (ListTerm index)   -> ListAccess e index
-    (FuncTerm args)    -> FuncCall e args
+chainAcc e = \case
+  (StructTerm field) -> StructAccess e field
+  (ListTerm index)   -> ListAccess e index
+  (FuncTerm args)    -> FuncCall e args
 
 chainExprP :: Parser Expr
 chainExprP = do

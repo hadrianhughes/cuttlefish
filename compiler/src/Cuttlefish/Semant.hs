@@ -36,14 +36,15 @@ typeofTypeExpr expr =
         return (name, args')
 
 typeVarsUsed :: Type -> S.Set Text
-typeVarsUsed (FuncType t1 t2)    = typeVarsUsed t1 <> typeVarsUsed t2
-typeVarsUsed (ListType t)        = typeVarsUsed t
-typeVarsUsed (TupleType ts)      = S.unions $ map typeVarsUsed ts
-typeVarsUsed (StructType fields) = S.unions $ map (typeVarsUsed . snd) fields
-typeVarsUsed (EnumType cases)    = S.unions $ map typeVarsUsed $ concat $ map snd cases
-typeVarsUsed (EffectType t)      = typeVarsUsed t
-typeVarsUsed (Placeholder name)  = S.singleton name
-typeVarsUsed _                   = S.empty
+typeVarsUsed = \case
+  (FuncType t1 t2)    -> typeVarsUsed t1 <> typeVarsUsed t2
+  (ListType t)        -> typeVarsUsed t
+  (TupleType ts)      -> S.unions $ map typeVarsUsed ts
+  (StructType fields) -> S.unions $ map (typeVarsUsed . snd) fields
+  (EnumType cases)    -> S.unions $ map typeVarsUsed $ concat $ map snd cases
+  (EffectType t)      -> typeVarsUsed t
+  (Placeholder name)  -> S.singleton name
+  _                   -> S.empty
 
 checkTypeDefn :: TypeDefn -> Semant STypeDefn
 checkTypeDefn defn = do
