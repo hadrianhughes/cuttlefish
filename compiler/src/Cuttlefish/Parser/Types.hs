@@ -13,9 +13,9 @@ primTypeP = Int   <$ rword "int"
         <|> Char  <$ rword "char"
         <|> Unit  <$ L.symbol hsc "()"
 
-typeVarDefnP :: Parser TypeVarDefn
-typeVarDefnP = try (TypeVarDefn <$> optional typeIdentifier <*> identifier)
-           <|> TypeVarDefn <$> (return Nothing) <*> identifier
+typeVarP :: Parser TypeVar
+typeVarP = try (TypeVar <$> optional typeIdentifier <*> identifier)
+           <|> TypeVar <$> (return Nothing) <*> identifier
 
 dataConstructorP :: Parser (Text, [TypeExpr])
 dataConstructorP = pair
@@ -42,5 +42,5 @@ typeDefnP :: Parser TypeDefn
 typeDefnP = parse <* fsc
   where
     parse = TypeDefn <$> (rword "type" *> typeIdentifier)
-        <*> (maybeList <$> optional (angles hsc (typeVarDefnP `sepBy1` comma)))
+        <*> (maybeList <$> optional (angles hsc (typeVarP `sepBy1` comma)))
         <*> (L.symbol fsc "=" *> openTypeExprP)
