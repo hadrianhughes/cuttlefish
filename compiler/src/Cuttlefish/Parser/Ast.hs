@@ -68,16 +68,16 @@ data Bind = SimpleBind      Text
           | ConstructorBind Text [Text]
           deriving (Show, Eq)
 
-data Statement = IfStmt { ifConds :: [(Expr, Expr)]
-                        , ifElse  :: Maybe Expr }
-               | VarDecl { varName  :: Text
-                         , varType  :: Maybe TypeExpr
-                         , varValue :: Expr }
+data Statement = IfStmt     { ifConds :: [(Expr, Expr)]
+                            , ifElse  :: Maybe Expr }
+               | VarDecl    { varName  :: Text
+                            , varType  :: Maybe TypeExpr
+                            , varValue :: Expr }
                | AssignStmt Expr Expr
-               | ExprStmt Expr
-               | ForLoop { forBind :: Bind
-                         , forList :: Expr
-                         , forBody :: Expr }
+               | EffectStmt Expr
+               | ForLoop    { forBind :: Bind
+                            , forList :: Expr
+                            , forBody :: Expr }
                | ReturnStmt Expr
                deriving (Show, Eq)
 

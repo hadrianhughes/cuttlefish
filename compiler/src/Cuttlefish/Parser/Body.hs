@@ -209,9 +209,6 @@ assignStmtP = AssignStmt
           <$> (try chainExprP <|> exprP)
           <*> (L.symbol fsc "=" *> topLevelExprP)
 
-exprStmtP :: Parser Statement
-exprStmtP = ExprStmt <$> topLevelExprP
-
 forLoopP :: Parser Statement
 forLoopP = ForLoop
        <$> (rword "for" *> bindP)
@@ -231,7 +228,7 @@ statementP = parse <* fsc
         <|> try varDeclP
         <|> try assignStmtP
         <|> try returnStmtP
-        <|> try exprStmtP
+        <|> try (EffectStmt <$> effectRunP)
         <|> try forLoopP
 
 -- Classes
