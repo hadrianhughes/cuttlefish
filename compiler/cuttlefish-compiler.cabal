@@ -30,6 +30,7 @@ library
     Cuttlefish.Parser.Body
     Cuttlefish.Parser.Core
     Cuttlefish.Parser.Types
+    Cuttlefish.Semant.Error
     Cuttlefish.Semant.Sast
   hs-source-dirs:
     src
