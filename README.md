@@ -4,5 +4,4 @@ The language will not necessarily be called Cuttlefish--I just needed a repo nam
 
 ## More parsing tasks
 
-- Implement else-if
 - Only allow effect-run statements instead of general expression statements

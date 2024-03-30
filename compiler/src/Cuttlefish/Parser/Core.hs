@@ -118,3 +118,6 @@ maybeList Nothing   = []
 
 sepBy2 :: Parser a -> Parser () -> Parser [a]
 sepBy2 p sep = (liftA2 (:)) (p <* sep) (p `sepBy1` sep)
+
+pair :: a -> b -> (a, b)
+pair a b = (a, b)

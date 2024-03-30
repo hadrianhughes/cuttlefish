@@ -68,9 +68,8 @@ data Bind = SimpleBind      Text
           | ConstructorBind Text [Text]
           deriving (Show, Eq)
 
-data Statement = IfStmt { ifCond :: Expr
-                        , ifThen :: [Statement]
-                        , ifElse :: Maybe [Statement] }
+data Statement = IfStmt { ifConds :: [(Expr, Expr)]
+                        , ifElse  :: Maybe Expr }
                | VarDecl { varName  :: Text
                          , varType  :: Maybe TypeExpr
                          , varValue :: Expr }

@@ -201,10 +201,15 @@ effectDefnP = do
 -- Statements
 
 ifStmtP :: Parser Statement
-ifStmtP = IfStmt
-  <$> (rword "if" *> (try operatorP <|> try chainExprP <|> exprP))
-  <*> (rword "then" *> blockP)
-  <*> optional (rword "else" *> blockP)
+ifStmtP = rword "if" *> do
+  cond1     <- condExpr
+  then1     <- blockExprP
+  rest      <- many (try elifExpr)
+  elseBlock <- optional (pair <$> rword "else" *> blockExprP)
+  return $ IfStmt ((cond1, then1) : rest) elseBlock
+  where
+    condExpr = try operatorP <|> try chainExprP <|> exprP
+    elifExpr = pair <$> (rword "else" *> rword "if" *> condExpr) <*> blockExprP
 
 varDeclP :: Parser Statement
 varDeclP = VarDecl
