@@ -33,6 +33,7 @@ library
     Cuttlefish.Semant
     Cuttlefish.Semant.Error
     Cuttlefish.Semant.Sast
+    Cuttlefish.Semant.Type
   hs-source-dirs:
     src
   build-depends:

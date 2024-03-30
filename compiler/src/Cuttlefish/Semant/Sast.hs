@@ -1,16 +1,18 @@
 module Cuttlefish.Semant.Sast where
 
-import Data.Text (Text)
-import Cuttlefish.Parser.Ast
+import           Control.Monad.Except
+import           Control.Monad.State
+import           Cuttlefish.Parser.Ast
+import qualified Data.Map              as M
+import           Data.Text (Text)
 
 data Type = PrimType    PrimType
           | FuncType    Type Type
           | ListType    Type
           | TupleType   [Type]
-          | SetType     Type
-          | EnumType    Text
+          | StructType  [(Text, Type)]
+          | EnumType    [(Text, [Type])]
           | EffectType  Type
-          | GenericType Text [Type]
           deriving (Show, Eq)
 
 type SExpr = (Type, SExpr')

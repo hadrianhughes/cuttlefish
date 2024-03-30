@@ -8,15 +8,21 @@ import           Cuttlefish.Semant.Sast
 import           Data.Text (Text)
 import qualified Data.Map                as M
 
-type Types = M.Map Text Type
+type TypeDefns = M.Map Text STypeDefn
 
-data Env = Env { types :: Types }
+data Env = Env { typeDefns :: TypeDefns }
 
 type Semant = ExceptT SemantError (State Env)
 
---checkTypeDefn :: TypeDefn -> Semant STypeDefn
---checkTypeDefn td = do
---  types <- gets types
---  let name = AST.typeName td
---  when (M.member name types) $ throwError $ DuplicateDefn name SError.TypeDefn
---  modify $ \env -> env { types = M.insert name (typeExpr td) types }
+typeofTypeExpr :: TypeExpr -> Type
+typeofTypeExpr expr =
+  case expr of
+    (FuncTypeExpr e1 e2)    -> FuncType (typeofTypeExpr e1) (typeofTypeExpr e2)
+    (ListTypeExpr e)        -> ListType (typeofTypeExpr e)
+    (TupleTypeExpr es)      -> TupleType (map typeofTypeExpr es)
+    (StructTypeExpr fields) ->
+      StructType [(n, typeofTypeExpr e) | (n, e) <- fields]
+    (EnumTypeExpr cases)    ->
+      EnumType [(n, map typeofTypeExpr es) | (n, es) <- cases]
+    (EffectTypeExpr e)      -> EffectType (typeofTypeExpr e)
+    (PrimTypeExpr p)        -> PrimType p
