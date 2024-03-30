@@ -23,19 +23,19 @@ dataConstructorP = pair
   <*> (maybeList <$> optional (parens hsc (openTypeExprP `sepBy1` comma))) <* fsc
 
 closedTypeExprP :: Parser TypeExpr
-closedTypeExprP = try (ListType    <$> brackets hsc openTypeExprP)
-              <|> try (TupleType   <$> parens hsc (openTypeExprP `sepBy1` comma))
-              <|> try (StructType  <$> braces fsc (keyValPair `sepBy` (comma <* fsc)))
-              <|> try (EnumType    <$> dataConstructorP `sepBy1` pipe)
-              <|> try (EffectType  <$> (rword "effect" *> angles hsc openTypeExprP))
-              <|> try (GenericType <$> identifier <*> angles hsc (openTypeExprP `sepBy1` comma))
-              <|> try (PrimType    <$> primTypeP)
-              <|> TypeVar          <$> identifier
+closedTypeExprP = try (ListTypeExpr    <$> brackets hsc openTypeExprP)
+              <|> try (TupleTypeExpr   <$> parens hsc (openTypeExprP `sepBy1` comma))
+              <|> try (StructTypeExpr  <$> braces fsc (keyValPair `sepBy` (comma <* fsc)))
+              <|> try (EnumTypeExpr    <$> dataConstructorP `sepBy1` pipe)
+              <|> try (EffectTypeExpr  <$> (rword "effect" *> angles hsc openTypeExprP))
+              <|> try (GenericTypeExpr <$> identifier <*> angles hsc (openTypeExprP `sepBy1` comma))
+              <|> try (PrimTypeExpr    <$> primTypeP)
+              <|> TypeVarExpr          <$> identifier
               where
                 keyValPair = pair <$> (identifier <* colon) <*> openTypeExprP
 
 openTypeExprP :: Parser TypeExpr
-openTypeExprP = try (FuncType <$> (closedTypeExprP <* L.symbol fsc "->") <*> openTypeExprP)
+openTypeExprP = try (FuncTypeExpr <$> (closedTypeExprP <* L.symbol fsc "->") <*> openTypeExprP)
             <|> closedTypeExprP
 
 typeDefnP :: Parser TypeDefn

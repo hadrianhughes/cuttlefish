@@ -126,7 +126,7 @@ argP :: Parser (Bind, TypeExpr)
 argP = pair <$> bindP <*> (colon *> openTypeExprP)
 
 argFold :: (a, TypeExpr) -> TypeExpr -> TypeExpr
-argFold (_, t1) t2 = FuncType t1 t2
+argFold (_, t1) t2 = FuncTypeExpr t1 t2
 
 funcDefnP :: Parser FuncDefn
 funcDefnP = do
@@ -136,7 +136,7 @@ funcDefnP = do
   rtnType  <- optional $ L.symbol hsc "->" *> openTypeExprP
   body     <- (L.symbol fsc "=" *> topLevelExprP) <|> blockExprP
 
-  let rtnType'  = fromMaybe (PrimType Unit) rtnType
+  let rtnType'  = fromMaybe (PrimTypeExpr Unit) rtnType
       funcType  = foldr argFold rtnType' args
       typeVars' = maybeList typeVars
 
@@ -174,8 +174,8 @@ effectDefnP = do
   rtnType  <- optional $ L.symbol hsc "->" *> openTypeExprP
   body     <- blockExprP
 
-  let rtnType'  = fromMaybe (PrimType Unit) rtnType
-      funcType  = foldr argFold (EffectType rtnType') args
+  let rtnType'  = fromMaybe (PrimTypeExpr Unit) rtnType
+      funcType  = foldr argFold (EffectTypeExpr rtnType') args
       typeVars' = maybeList typeVars
 
   return $ FuncDefn
@@ -242,15 +242,15 @@ classDefnP = ClassDefn
     funcSig :: Parser (Text, TypeExpr)
     funcSig = rword "func" *> do
       (name, args, rtn) <- sig
-      let args' = if null args then [PrimType Unit] else args
-          typ   = foldr FuncType rtn args'
+      let args' = if null args then [PrimTypeExpr Unit] else args
+          typ   = foldr FuncTypeExpr rtn args'
       return (name, typ)
 
     effectSig :: Parser (Text, TypeExpr)
     effectSig = rword "effect" *> do
       (name, args, rtn) <- sig
-      let args' = if null args then [PrimType Unit] else args
-          typ   = foldr FuncType (EffectType rtn) args'
+      let args' = if null args then [PrimTypeExpr Unit] else args
+          typ   = foldr FuncTypeExpr (EffectTypeExpr rtn) args'
       return (name, typ)
 
     sig :: Parser (Text, [TypeExpr], TypeExpr)

@@ -4,15 +4,15 @@ import Data.Text (Text)
 
 data PrimType = Int | Float | Char | Unit deriving (Show, Eq)
 
-data TypeExpr = FuncType    TypeExpr TypeExpr
-              | ListType    TypeExpr
-              | TupleType   [TypeExpr]
-              | StructType  [(Text, TypeExpr)]
-              | EnumType    [(Text, [TypeExpr])]
-              | EffectType  TypeExpr
-              | GenericType Text [TypeExpr]
-              | TypeVar     Text
-              | PrimType    PrimType
+data TypeExpr = FuncTypeExpr    TypeExpr TypeExpr
+              | ListTypeExpr    TypeExpr
+              | TupleTypeExpr   [TypeExpr]
+              | StructTypeExpr  [(Text, TypeExpr)]
+              | EnumTypeExpr    [(Text, [TypeExpr])]
+              | EffectTypeExpr  TypeExpr
+              | TypeVarExpr     Text
+              | PrimTypeExpr    PrimType
+              | GenericTypeExpr Text [TypeExpr]
               deriving (Show, Eq)
 
 data TypeVarDefn = TypeVarDefn { varDefnClass :: Maybe Text
