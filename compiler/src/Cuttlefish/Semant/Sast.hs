@@ -13,6 +13,7 @@ data Type = PrimType    PrimType
           | StructType  [(Text, Type)]
           | EnumType    [(Text, [Type])]
           | EffectType  Type
+          | Placeholder Text
           deriving (Show, Eq)
 
 type SExpr = (Type, SExpr')

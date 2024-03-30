@@ -10,13 +10,13 @@ data TypeExpr = FuncTypeExpr    TypeExpr TypeExpr
               | StructTypeExpr  [(Text, TypeExpr)]
               | EnumTypeExpr    [(Text, [TypeExpr])]
               | EffectTypeExpr  TypeExpr
-              | TypeVarExpr     Text
+              | PlaceholderExpr Text
               | PrimTypeExpr    PrimType
               | GenericTypeExpr Text [TypeExpr]
               deriving (Show, Eq)
 
 data TypeVar = TypeVar { varDefnClass :: Maybe Text
-                               , varDefnName  :: Text } deriving (Show, Eq)
+                       , varDefnName  :: Text } deriving (Show, Eq)
 
 data TypeDefn = TypeDefn { typeName :: Text
                          , typeVars :: [TypeVar]

@@ -131,7 +131,7 @@ argFold (_, t1) t2 = FuncTypeExpr t1 t2
 funcDefnP :: Parser FuncDefn
 funcDefnP = do
   name     <- rword "func" *> identifier
-  typeVars <- optional (angles hsc $ some typeVarDefnP)
+  typeVars <- optional (angles hsc $ some typeVarP)
   args     <- parens fsc $ argP `sepBy` (comma <* fsc)
   rtnType  <- optional $ L.symbol hsc "->" *> openTypeExprP
   body     <- (L.symbol fsc "=" *> topLevelExprP) <|> blockExprP
@@ -151,7 +151,7 @@ funcDefnP = do
 funcDefnP' :: Parser FuncDefn
 funcDefnP' = do
   (name, funcType) <- rword "func" *> parens hsc nameTypeP
-  typeVars         <- optional (angles hsc $ some typeVarDefnP)
+  typeVars         <- optional (angles hsc $ some typeVarP)
   args             <- parens fsc (bindP `sepBy` (comma <* fsc))
   body             <- (L.symbol hsc "=" *> topLevelExprP) <|> blockExprP
 
@@ -169,7 +169,7 @@ funcDefnP' = do
 effectDefnP :: Parser FuncDefn
 effectDefnP = do
   name     <- rword "effect" *> identifier
-  typeVars <- optional (angles hsc $ some typeVarDefnP)
+  typeVars <- optional (angles hsc $ some typeVarP)
   args     <- parens fsc $ argP `sepBy` (comma <* fsc)
   rtnType  <- optional $ L.symbol hsc "->" *> openTypeExprP
   body     <- blockExprP

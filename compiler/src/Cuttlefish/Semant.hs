@@ -27,9 +27,9 @@ typeofTypeExpr expr =
     (EnumTypeExpr cases)    -> EnumType   <$> mapM evalEnumCase cases
     (EffectTypeExpr e)      -> EffectType <$> typeofTypeExpr e
     (PrimTypeExpr p)        -> return $ PrimType p
+    (PlaceholderExpr name)  -> return $ Placeholder name
     (GenericTypeExpr _ _)   -> throwError (IllegalGeneric expr)
     where
-      evalEnumCase :: (Text, [TypeExpr]) -> Semant (Text, [Type])
       evalEnumCase (name, args) = do
         args' <- mapM typeofTypeExpr args
         return (name, args')

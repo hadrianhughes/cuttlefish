@@ -30,7 +30,7 @@ closedTypeExprP = try (ListTypeExpr    <$> brackets hsc openTypeExprP)
               <|> try (EffectTypeExpr  <$> (rword "effect" *> angles hsc openTypeExprP))
               <|> try (GenericTypeExpr <$> identifier <*> angles hsc (openTypeExprP `sepBy1` comma))
               <|> try (PrimTypeExpr    <$> primTypeP)
-              <|> TypeVarExpr          <$> identifier
+              <|> PlaceholderExpr      <$> identifier
               where
                 keyValPair = pair <$> (identifier <* colon) <*> openTypeExprP
 
