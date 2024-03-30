@@ -7,13 +7,13 @@ import Data.Text (Text)
 type Name = Text
 
 data IllegalBindReason = Duplicate | Unit deriving Show
-data DefnKind = ConstDefn | FuncDefn deriving Show
-data RefKind = VarRef | FuncRef deriving Show
-data HeteroTypesKind = List | Match deriving Show
+data DefnKind          = ConstDefn | FuncDefn | TypeDefn deriving Show
+data RefKind           = VarRef | FuncRef deriving Show
+data HeteroTypesKind   = List | Match deriving Show
 
 data SemantError =
     IllegalBinding  Name IllegalBindReason
-  | DuplicateDefn   Name
+  | DuplicateDefn   Name DefnKind
   | UndefinedRef    Name RefKind Expr
   | NoMain
   | IllegalAssign   { lhs :: Expr }

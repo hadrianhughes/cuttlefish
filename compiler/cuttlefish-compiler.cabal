@@ -30,6 +30,7 @@ library
     Cuttlefish.Parser.Body
     Cuttlefish.Parser.Core
     Cuttlefish.Parser.Types
+    Cuttlefish.Semant
     Cuttlefish.Semant.Error
     Cuttlefish.Semant.Sast
   hs-source-dirs:
@@ -39,5 +40,7 @@ library
     , megaparsec
     , text
     , string-conversions
+    , containers
+    , mtl
   default-extensions: OverloadedStrings
   default-language: Haskell2010
