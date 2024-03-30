@@ -238,9 +238,9 @@ statementP = parse <* fsc
     parse = try ifStmtP
         <|> try varDeclP
         <|> try assignStmtP
+        <|> try returnStmtP
         <|> try exprStmtP
         <|> try forLoopP
-        <|> returnStmtP
 
 -- Classes
 
