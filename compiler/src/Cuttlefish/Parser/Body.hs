@@ -64,10 +64,7 @@ matchExprP = MatchExpr
   <$> (rword "match" *> bindP)
   <*> braces fsc (caseP `sepBy1` (comma <* fsc))
   where
-    caseP = do
-      bind <- bindP
-      expr <- L.symbol fsc "->" *> topLevelExprP
-      return (bind, expr)
+    caseP = pair <$> bindP <*> (L.symbol fsc "->" *> topLevelExprP)
 
 listExprP :: Parser Expr
 listExprP = ListExpr <$> brackets fsc (topLevelExprP `sepBy` comma)
@@ -78,11 +75,7 @@ tupleExprP = TupleExpr <$> parens fsc (topLevelExprP `sepBy2` comma)
 structExprP :: Parser Expr
 structExprP = StructExpr <$> braces fsc (keyValPair `sepBy` comma <* fsc)
   where
-    keyValPair :: Parser (Text, Expr)
-    keyValPair = do
-      key <- identifier <* colon <* fsc
-      val <- exprP
-      return (key, val)
+    keyValPair = pair <$> (identifier <* colon <* fsc) <*> exprP
 
 varRefP :: Parser Expr
 varRefP = VarRef <$> identifier
@@ -130,10 +123,7 @@ constDefnP = const <* fsc
 -- Functions
 
 argP :: Parser (Bind, TypeExpr)
-argP = do
-  arg <- bindP
-  typ <- colon *> openTypeExprP
-  return (arg, typ)
+argP = pair <$> bindP <*> (colon *> openTypeExprP)
 
 argFold :: (a, TypeExpr) -> TypeExpr -> TypeExpr
 argFold (_, t1) t2 = FuncType t1 t2
@@ -174,10 +164,7 @@ funcDefnP' = do
     args
     body
   where
-    nameTypeP = do
-      name <- identifier
-      typ  <- colon *> openTypeExprP
-      return (name, typ)
+    nameTypeP = pair <$> identifier <*> (colon *> openTypeExprP)
 
 effectDefnP :: Parser FuncDefn
 effectDefnP = do

@@ -18,10 +18,9 @@ typeVarDefnP = try (TypeVarDefn <$> optional typeIdentifier <*> identifier)
            <|> TypeVarDefn <$> (return Nothing) <*> identifier
 
 dataConstructorP :: Parser (Text, [TypeExpr])
-dataConstructorP = do
-  name <- typeIdentifier
-  args <- maybeList <$> optional (parens hsc $ openTypeExprP `sepBy1` comma) <* fsc
-  return (name, args)
+dataConstructorP = pair
+  <$> typeIdentifier
+  <*> (maybeList <$> optional (parens hsc (openTypeExprP `sepBy1` comma))) <* fsc
 
 closedTypeExprP :: Parser TypeExpr
 closedTypeExprP = try (ListType    <$> brackets hsc openTypeExprP)
@@ -33,10 +32,7 @@ closedTypeExprP = try (ListType    <$> brackets hsc openTypeExprP)
               <|> try (PrimType    <$> primTypeP)
               <|> TypeVar          <$> identifier
               where
-                keyValPair = do
-                  key <- (identifier <* colon)
-                  val <- openTypeExprP
-                  return (key, val)
+                keyValPair = pair <$> (identifier <* colon) <*> openTypeExprP
 
 openTypeExprP :: Parser TypeExpr
 openTypeExprP = try (FuncType <$> (closedTypeExprP <* L.symbol fsc "->") <*> openTypeExprP)
