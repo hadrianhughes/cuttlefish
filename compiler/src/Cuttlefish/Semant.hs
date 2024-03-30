@@ -7,6 +7,7 @@ import           Cuttlefish.Semant.Error as SError
 import           Cuttlefish.Semant.Sast
 import           Data.Text (Text)
 import qualified Data.Map                as M
+import qualified Data.Set                as S
 
 type TypeDefns = M.Map Text STypeDefn
 
@@ -34,6 +35,16 @@ typeofTypeExpr expr =
         args' <- mapM typeofTypeExpr args
         return (name, args')
 
+typeVarsUsed :: Type -> S.Set Text
+typeVarsUsed (FuncType t1 t2)    = typeVarsUsed t1 <> typeVarsUsed t2
+typeVarsUsed (ListType t)        = typeVarsUsed t
+typeVarsUsed (TupleType ts)      = S.unions $ map typeVarsUsed ts
+typeVarsUsed (StructType fields) = S.unions $ map (typeVarsUsed . snd) fields
+typeVarsUsed (EnumType cases)    = S.unions $ map typeVarsUsed $ concat $ map snd cases
+typeVarsUsed (EffectType t)      = typeVarsUsed t
+typeVarsUsed (Placeholder name)  = S.singleton name
+typeVarsUsed _                   = S.empty
+
 checkTypeDefn :: TypeDefn -> Semant STypeDefn
 checkTypeDefn defn = do
   defns <- gets typeDefns
@@ -41,7 +52,14 @@ checkTypeDefn defn = do
   when (M.member name defns) $ throwError (DuplicateDefn name DTypeDefn)
 
   type' <- typeofTypeExpr $ AST.typeExpr defn
-  let defn' = STypeDefn name (AST.typeVars defn) type'
+  let defn'         = STypeDefn name (AST.typeVars defn) type'
+      varsUsed      = typeVarsUsed type'
+      varsDeclared  = S.fromList $ map typeVarName $ AST.typeVars defn
+      undefinedVars = S.difference varsUsed varsDeclared
+      unusedVars    = S.difference varsDeclared varsUsed
+
+  unless (null undefinedVars) $ throwError (UndefinedTypeVars (S.toList undefinedVars) (AST.typeExpr defn))
+  unless (null unusedVars) $ throwError (UnusedTypeVars (S.toList unusedVars) (UTVType defn))
 
   modify $ \env -> env { typeDefns = M.insert name defn' defns }
 

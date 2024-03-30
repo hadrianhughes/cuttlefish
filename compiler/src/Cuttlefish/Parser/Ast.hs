@@ -15,8 +15,8 @@ data TypeExpr = FuncTypeExpr    TypeExpr TypeExpr
               | GenericTypeExpr Text [TypeExpr]
               deriving (Show, Eq)
 
-data TypeVar = TypeVar { varDefnClass :: Maybe Text
-                       , varDefnName  :: Text } deriving (Show, Eq)
+data TypeVar = TypeVar { typeVarClass :: Maybe Text
+                       , typeVarName  :: Text } deriving (Show, Eq)
 
 data TypeDefn = TypeDefn { typeName :: Text
                          , typeVars :: [TypeVar]
