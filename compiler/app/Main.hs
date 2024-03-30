@@ -5,21 +5,30 @@ import           Options.Applicative
 import qualified Data.Text.IO        as T
 import           Text.Pretty.Simple
 
-data Options = Options { infile :: FilePath }
+data Action = Ast | Sast
+data Options = Options { action :: Action, infile :: FilePath }
+
+actionP :: Parser Action
+actionP = flag' Ast  (long "ast"  <> short 'a' <> help "Print the AST")
+      <|> flag' Sast (long "sast" <> short 's' <> help "Print the SAST")
 
 optionsP :: Parser Options
-optionsP = Options <$> strArgument (help "Source file" <> metavar "FILE")
+optionsP = Options
+  <$> actionP
+  <*> strArgument (help "Source file" <> metavar "FILE")
 
 runOpts :: Options -> IO ()
-runOpts opts = do
-  program <- T.readFile (infile opts)
-  let parseTree = runParser programP (infile opts) program
+runOpts (Options action infile) = do
+  program <- T.readFile infile
+  let parseTree = runParser programP infile program
   case parseTree of
     Left  err -> putStrLn $ errorBundlePretty err
     Right ast ->
-      case checkProgram ast of
-        Left  err' -> putStrLn $ show err'
-        Right sast -> pPrint sast
+      case action of
+        Ast -> pPrint ast
+        _   -> case checkProgram ast of
+                 Left  err' -> putStrLn $ show err'
+                 Right sast -> pPrint sast
 
 main :: IO ()
 main = runOpts =<< execParser (optionsP `withInfo` infoString)
