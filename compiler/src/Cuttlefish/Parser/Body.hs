@@ -76,9 +76,7 @@ tupleExprP :: Parser Expr
 tupleExprP = TupleExpr <$> parens fsc (topLevelExprP `sepBy2` comma)
 
 structExprP :: Parser Expr
-structExprP = StructExpr
-  <$> typeIdentifier
-  <*> braces fsc (keyValPair `sepBy` comma <* fsc)
+structExprP = StructExpr <$> braces fsc (keyValPair `sepBy` comma <* fsc)
   where
     keyValPair :: Parser (Text, Expr)
     keyValPair = do

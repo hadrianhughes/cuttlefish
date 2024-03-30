@@ -30,7 +30,7 @@ data Expr = VarRef       Text
           | EffectRun    Expr
           | ListExpr     [Expr]
           | TupleExpr    [Expr]
-          | StructExpr   Text [(Text, Expr)]
+          | StructExpr   [(Text, Expr)]
           | MatchExpr    Bind [(Bind, Expr)]
           | BlockExpr    [Statement]
           | IntLit       Int
