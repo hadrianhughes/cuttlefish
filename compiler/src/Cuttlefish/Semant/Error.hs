@@ -7,7 +7,7 @@ import Data.Text (Text)
 type Name = Text
 
 data IllegalBindReason = Duplicate | Unit deriving Show
-data DefnKind          = ConstDefn | FuncDefn deriving Show
+data DefnKind          = DConstDefn | DFuncDefn | DTypeDefn deriving Show
 data RefKind           = VarRef | FuncRef | TypeRef deriving Show
 data HeteroTypesKind   = List | Match deriving Show
 

@@ -16,7 +16,10 @@ runOpts opts = do
   let parseTree = runParser programP (infile opts) program
   case parseTree of
     Left  err -> putStrLn $ errorBundlePretty err
-    Right ast -> pPrint ast
+    Right ast ->
+      case checkProgram ast of
+        Left  err' -> putStrLn $ show err'
+        Right sast -> pPrint sast
 
 main :: IO ()
 main = runOpts =<< execParser (optionsP `withInfo` infoString)

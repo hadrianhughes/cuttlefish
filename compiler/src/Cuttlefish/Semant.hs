@@ -26,3 +26,26 @@ typeofTypeExpr expr =
       EnumType [(n, map typeofTypeExpr es) | (n, es) <- cases]
     (EffectTypeExpr e)      -> EffectType (typeofTypeExpr e)
     (PrimTypeExpr p)        -> PrimType p
+
+checkTypeDefn :: TypeDefn -> Semant STypeDefn
+checkTypeDefn defn = do
+  defns <- gets typeDefns
+  let name = AST.typeName defn
+  when (M.member name defns) $ throwError (DuplicateDefn name DTypeDefn)
+
+  let defn' = STypeDefn name (AST.typeVars defn) (typeofTypeExpr $ AST.typeExpr defn)
+
+  modify $ \env -> env { typeDefns = M.insert name defn' defns }
+
+  return defn'
+
+checkProgram :: Program -> Either SemantError SProgram
+checkProgram prog = evalState (runExceptT (checkProgram' prog)) env
+  where
+    env = Env { typeDefns = M.empty }
+
+    checkProgram' :: Program -> Semant SProgram
+    checkProgram' prog = do
+      let types = AST.pTypes prog
+      types' <- mapM checkTypeDefn types
+      return $ SProgram types' [] [] [] []

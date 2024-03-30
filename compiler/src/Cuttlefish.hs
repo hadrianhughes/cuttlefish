@@ -4,3 +4,4 @@ module Cuttlefish
 where
 
 import Cuttlefish.Parser as X
+import Cuttlefish.Semant as X
