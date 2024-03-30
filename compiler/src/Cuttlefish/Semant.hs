@@ -73,6 +73,5 @@ checkProgram prog = evalState (runExceptT (checkProgram' prog)) env
 
     checkProgram' :: Program -> Semant SProgram
     checkProgram' prog = do
-      let types = AST.pTypes prog
-      types' <- mapM checkTypeDefn types
-      return $ SProgram types' [] [] [] []
+      types <- mapM checkTypeDefn $ AST.pTypes prog
+      return $ SProgram types [] [] [] []

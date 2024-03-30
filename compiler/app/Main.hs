@@ -27,7 +27,7 @@ runOpts (Options action infile) = do
       case action of
         Ast -> pPrint ast
         _   -> case checkProgram ast of
-                 Left  err' -> putStrLn $ show err'
+                 Left  err' -> pPrint err'
                  Right sast -> pPrint sast
 
 main :: IO ()
