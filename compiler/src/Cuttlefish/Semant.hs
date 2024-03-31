@@ -9,9 +9,11 @@ import           Data.Text (Text)
 import qualified Data.Map                as M
 import qualified Data.Set                as S
 
-type TypeDefns = M.Map Text STypeDefn
+type TypeDefns  = M.Map Text STypeDefn
+type ClassDefns = M.Map Text SClassDefn
 
-data Env = Env { typeDefns :: TypeDefns }
+data Env = Env { typeDefns  :: TypeDefns
+               , classDefns :: ClassDefns}
 
 type Semant = ExceptT SemantError (State Env)
 
@@ -66,12 +68,31 @@ checkTypeDefn defn = do
 
   return defn'
 
+checkClassDefn :: ClassDefn -> Semant SClassDefn
+checkClassDefn defn = do
+  defns <- gets classDefns
+  let name = AST.className defn
+  when (M.member name defns) $ throwError (DuplicateDefn name DClassDefn)
+
+  sigs' <- mapM evalSig $ AST.classSigs defn
+  let defn' = SClassDefn name (AST.classVar defn) sigs'
+
+  modify $ \env -> env { classDefns = M.insert name defn' defns }
+
+  return defn'
+  where
+    evalSig :: (Text, TypeExpr) -> Semant (Text, Type)
+    evalSig (name, t) = do
+      t' <- typeofTypeExpr t
+      return (name, t')
+
 checkProgram :: Program -> Either SemantError SProgram
 checkProgram prog = evalState (runExceptT (checkProgram' prog)) env
   where
-    env = Env { typeDefns = M.empty }
+    env = Env { typeDefns = M.empty, classDefns = M.empty }
 
     checkProgram' :: Program -> Semant SProgram
     checkProgram' prog = do
-      types <- mapM checkTypeDefn $ AST.pTypes prog
-      return $ SProgram types [] [] [] []
+      types   <- mapM checkTypeDefn $ AST.pTypes prog
+      classes <- mapM checkClassDefn $ AST.pClasses prog
+      return $ SProgram types [] [] classes []
