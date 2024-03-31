@@ -128,23 +128,25 @@ argFold :: (a, TypeExpr) -> TypeExpr -> TypeExpr
 argFold (_, t1) t2 = FuncTypeExpr t1 t2
 
 funcDefnP :: Parser FuncDefn
-funcDefnP = do
-  name     <- rword "func" *> identifier
-  typeVars <- optional (angles hsc $ some typeVarP)
-  args     <- parens fsc $ argP `sepBy` (comma <* fsc)
-  rtnType  <- optional $ L.symbol hsc "->" *> openTypeExprP
-  body     <- (L.symbol fsc "=" *> topLevelExprP) <|> blockExprP
+funcDefnP = parse <* fsc
+  where
+    parse = do
+      name     <- rword "func" *> identifier
+      typeVars <- optional (angles hsc $ some typeVarP)
+      args     <- parens fsc $ argP `sepBy` (comma <* fsc)
+      rtnType  <- optional $ L.symbol hsc "->" *> openTypeExprP
+      body     <- (L.symbol fsc "=" *> topLevelExprP) <|> blockExprP
 
-  let rtnType'  = fromMaybe (PrimTypeExpr Unit) rtnType
-      funcType  = foldr argFold rtnType' args
-      typeVars' = maybeList typeVars
+      let rtnType'  = fromMaybe (PrimTypeExpr Unit) rtnType
+          funcType  = foldr argFold rtnType' args
+          typeVars' = maybeList typeVars
 
-  return $ FuncDefn
-    name
-    funcType
-    typeVars'
-    (map fst args)
-    body
+      return $ FuncDefn
+        name
+        funcType
+        typeVars'
+        (map fst args)
+        body
 
 -- Supports typing a function with a predefined type
 funcDefnP' :: Parser FuncDefn
