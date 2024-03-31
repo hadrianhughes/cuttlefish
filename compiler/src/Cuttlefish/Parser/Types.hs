@@ -20,15 +20,15 @@ typeVarP = try (TypeVar <$> optional typeIdentifier <*> identifier)
 dataConstructorP :: Parser (Text, [TypeExpr])
 dataConstructorP = pair
   <$> typeIdentifier
-  <*> (maybeList <$> optional (parens hsc (openTypeExprP `sepBy1` comma))) <* fsc
+  <*> (maybeList <$> optional (parens hsc $ openTypeExprP `sepBy1` comma)) <* fsc
 
 closedTypeExprP :: Parser TypeExpr
 closedTypeExprP = try (ListTypeExpr    <$> brackets hsc openTypeExprP)
               <|> try (TupleTypeExpr   <$> parens hsc (openTypeExprP `sepBy1` comma))
               <|> try (StructTypeExpr  <$> braces fsc (keyValPair `sepBy` (comma <* fsc)))
-              <|> try (EnumTypeExpr    <$> dataConstructorP `sepBy1` pipe)
               <|> try (EffectTypeExpr  <$> (rword "effect" *> angles hsc openTypeExprP))
               <|> try (GenericTypeExpr <$> identifier <*> angles hsc (openTypeExprP `sepBy1` comma))
+              <|> try (EnumTypeExpr    <$> dataConstructorP `sepBy1` pipe)
               <|> try (PrimTypeExpr    <$> primTypeP)
               <|> PlaceholderExpr      <$> identifier
               where
