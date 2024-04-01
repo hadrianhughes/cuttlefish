@@ -33,7 +33,12 @@ library
     Cuttlefish.Parser.Utils
     Cuttlefish.Semant
     Cuttlefish.Semant.Error
+    Cuttlefish.Semant.Func
+    Cuttlefish.Semant.Class
+    Cuttlefish.Semant.Core
+    Cuttlefish.Semant.Member
     Cuttlefish.Semant.Sast
+    Cuttlefish.Semant.Types
     Cuttlefish.Semant.Utils
     Cuttlefish.Utils
   hs-source-dirs:
