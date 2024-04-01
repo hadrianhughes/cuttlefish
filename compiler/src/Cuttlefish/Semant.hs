@@ -136,12 +136,17 @@ checkFuncDefn defn = do
 
   -- Check for appropriate number of binds
   funcType <- convertTypeExpr $ AST.funcType defn
-  let (argTypes, _) = flatFuncType funcType
+  funcType' <- case funcType of
+    (FuncType _ _)            -> return funcType
+    (EnumType ((name, _):[])) -> resolveExplicitType name
+    _ -> error $ "Function has invalid type: " ++ show funcType
+
+  let (argTypes, _) = flatFuncType funcType'
   when (length argTypes /= length args) $ throwError (IncorrectArity $ ArityFunc defn)
 
   return $ SFuncDefn
     name
-    funcType
+    funcType'
     constraints
     args
     -- TODO: Implement actual body (relies on SExpr)
@@ -158,6 +163,14 @@ checkFuncDefn defn = do
     argError var bind = do
       when (bindHasVar var bind) $ throwError (IllegalBinding var $ IBDuplicate bind)
       return bind
+    resolveExplicitType :: Text -> Semant Type
+    resolveExplicitType typeName = do
+      types <- gets typeDefns
+      case M.lookup typeName types of
+        Just (STypeDefn _ _ t) -> case t of
+          (FuncType _ _) -> return t
+          _ -> throwError $ InvalidFuncType t defn
+        Nothing -> throwError $ UndefinedType typeName (UTFuncDefn defn)
 
 
 checkProgram :: Program -> Either SemantError SProgram

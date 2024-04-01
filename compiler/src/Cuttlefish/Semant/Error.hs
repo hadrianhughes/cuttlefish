@@ -12,10 +12,11 @@ data RefKind            = VarRef | FuncRef deriving Show
 data HeteroTypesKind    = List | Match deriving Show
 data UnusedTypeVarsLoc  = UTVType TypeDefn | UTVFunc FuncDefn deriving Show
 data UndefinedClassKind = UCMemberDefn MembershipDefn | UCConstraint TypeConstraint deriving Show
-data UndefinedTypeKind  = UTExpr Expr | UTMemberDefn MembershipDefn deriving Show
+data UndefinedTypeKind  = UTExpr       Expr
+                        | UTMemberDefn MembershipDefn
+                        | UTFuncDefn   FuncDefn deriving Show
 data ArityLoc           = ArityMember MembershipImpl Type
-                        | ArityFunc   FuncDefn
-                        deriving Show
+                        | ArityFunc   FuncDefn deriving Show
 
 data SemantError =
     IllegalBinding    Name IllegalBindReason
@@ -40,4 +41,5 @@ data SemantError =
   | NonExhaustMatch   { matchingTyp :: Type, loc :: Expr }
   | IllegalEffect     { loc :: Expr, func :: SFuncDefn }
   | IllegalGeneric    TypeExpr
+  | InvalidFuncType   Type FuncDefn
   deriving Show
