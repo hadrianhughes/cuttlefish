@@ -17,24 +17,24 @@ data Env = Env { typeDefns  :: TypeDefns
 
 type Semant = ExceptT SemantError (State Env)
 
-resolveTypeExpr :: TypeExpr -> Semant Type
-resolveTypeExpr expr =
+convertTypeExpr :: TypeExpr -> Semant Type
+convertTypeExpr expr =
   case expr of
-    (FuncTypeExpr e1 e2)     -> FuncType      <$> (resolveTypeExpr e1) <*> (resolveTypeExpr e2)
-    (ListTypeExpr e)         -> ListType      <$> (resolveTypeExpr e)
-    (TupleTypeExpr es)       -> TupleType     <$> (mapM resolveTypeExpr es)
+    (FuncTypeExpr e1 e2)     -> FuncType      <$> (convertTypeExpr e1) <*> (convertTypeExpr e2)
+    (ListTypeExpr e)         -> ListType      <$> (convertTypeExpr e)
+    (TupleTypeExpr es)       -> TupleType     <$> (mapM convertTypeExpr es)
     (StructTypeExpr fields)  -> do
-      vals <- mapM (resolveTypeExpr . snd) fields
+      vals <- mapM (convertTypeExpr . snd) fields
       let keys = map fst fields
       return (StructType $ zip keys vals)
     (EnumTypeExpr cases)     -> EnumType      <$> mapM evalEnumCase cases
-    (EffectTypeExpr e)       -> EffectType    <$> resolveTypeExpr e
-    (GenericTypeExpr n args) -> GenericType n <$> mapM resolveTypeExpr args
+    (EffectTypeExpr e)       -> EffectType    <$> convertTypeExpr e
+    (GenericTypeExpr n args) -> GenericType n <$> mapM convertTypeExpr args
     (PrimTypeExpr p)         -> return $ PrimType p
     (PlaceholderExpr name)   -> return $ Placeholder name
     where
       evalEnumCase (name, args) = do
-        args' <- mapM resolveTypeExpr args
+        args' <- mapM convertTypeExpr args
         return (name, args')
 
 checkTypeDefn :: TypeDefn -> Semant STypeDefn
@@ -43,7 +43,7 @@ checkTypeDefn defn = do
   let name = AST.typeName defn
   when (M.member name defns) $ throwError (DuplicateDefn name DTypeDefn)
 
-  type' <- resolveTypeExpr $ AST.typeExpr defn
+  type' <- convertTypeExpr $ AST.typeExpr defn
   let defn' = STypeDefn name (AST.typeVars defn) type'
 
   modify $ \env -> env { typeDefns = M.insert name defn' defns }
@@ -65,7 +65,7 @@ checkClassDefn defn = do
   where
     evalSig :: (Text, TypeExpr) -> Semant (Text, Type)
     evalSig (name, t) = do
-      t' <- resolveTypeExpr t
+      t' <- convertTypeExpr t
       return (name, t')
 
 checkProgram :: Program -> Either SemantError SProgram
