@@ -6,19 +6,24 @@ import Data.Text (Text)
 
 type Name = Text
 
-data IllegalBindReason = Duplicate | Unit deriving Show
-data DefnKind          = DConstDefn | DFuncDefn | DTypeDefn | DClassDefn deriving Show
-data RefKind           = VarRef | FuncRef | TypeRef deriving Show
-data HeteroTypesKind   = List | Match deriving Show
-data UnusedTypeVarsLoc = UTVType TypeDefn | UTVFunc FuncDefn deriving Show
+data IllegalBindReason  = IBDuplicate | IBUnit deriving Show
+data DefnKind           = DConstDefn | DFuncDefn | DTypeDefn | DClassDefn deriving Show
+data RefKind            = VarRef | FuncRef deriving Show
+data HeteroTypesKind    = List | Match deriving Show
+data UnusedTypeVarsLoc  = UTVType TypeDefn | UTVFunc FuncDefn deriving Show
+data UndefinedClassKind = UCMemberDefn MembershipDefn | UCConstraint TypeConstraint deriving Show
+data UndefinedTypeKind  = UTExpr Expr | UTMemberDefn MembershipDefn deriving Show
 
 data SemantError =
     IllegalBinding    Name IllegalBindReason
   | DuplicateDefn     Name DefnKind
   | UndefinedRef      Name RefKind Expr
-  | UndefinedType     Name TypeExpr
+  | UndefinedType     Name UndefinedTypeKind
   | UndefinedTypeVars [Name] TypeExpr
+  | UndefinedClass    Name UndefinedClassKind
   | UnusedTypeVars    [Name] UnusedTypeVarsLoc
+  | UnexpectedSig     Name MembershipDefn
+  | IncorrectArity    MembershipImpl Type
   | NoMain
   | IllegalAssign     { lhs :: Expr }
   | UnreachableCode   Statement

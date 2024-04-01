@@ -4,16 +4,19 @@ import           Control.Monad.Except
 import           Control.Monad.State
 import           Cuttlefish.Parser.Ast   as AST
 import           Cuttlefish.Semant.Error as SError
-import           Cuttlefish.Semant.Sast
+import           Cuttlefish.Semant.Sast  as SAST
+import           Cuttlefish.Semant.Utils
 import           Data.Text (Text)
 import qualified Data.Map                as M
 import qualified Data.Set                as S
 
-type TypeDefns  = M.Map Text STypeDefn
-type ClassDefns = M.Map Text SClassDefn
+type TypeDefns   = M.Map Text STypeDefn
+type ClassDefns  = M.Map Text SClassDefn
+type MemberDefns = M.Map Text SMembershipDefn
 
-data Env = Env { typeDefns  :: TypeDefns
-               , classDefns :: ClassDefns}
+data Env = Env { typeDefns   :: TypeDefns
+               , classDefns  :: ClassDefns
+               , memberDefns :: MemberDefns }
 
 type Semant = ExceptT SemantError (State Env)
 
@@ -68,6 +71,45 @@ checkClassDefn defn = do
       t' <- convertTypeExpr t
       return (name, t')
 
+checkMemberDefn :: MembershipDefn -> Semant SMembershipDefn
+checkMemberDefn defn = do
+  -- Check class exists
+  classes <- gets classDefns
+  let className = AST.membClass defn
+      classDefn = M.lookup className classes
+  case classDefn of
+    Nothing -> throwError (UndefinedClass className $ UCMemberDefn defn)
+    Just cd -> do
+      -- Check type exists
+      types <- gets typeDefns
+      let typeName = AST.membType defn
+      unless (M.member typeName types) $ throwError (UndefinedType typeName $ UTMemberDefn defn)
+
+      defns' <- mapM (checkImpl cd) (AST.membDefns defn)
+      return $ SMembershipDefn className typeName defns'
+  where
+    checkImpl :: SClassDefn -> MembershipImpl -> Semant SFuncDefn
+    checkImpl classDefn impl = do
+      let sigs   = SAST.classSigs classDefn
+          sigMap = M.fromList sigs
+
+      -- Check func belongs to class
+      let name = implName impl
+          sig  = M.lookup name sigMap
+
+      case sig of
+        Nothing -> throwError (UnexpectedSig name defn)
+        Just t  -> do
+          -- Check func provides enough args
+          let (args, rtn) = flatFuncType t
+              arity       = length args
+              argc        = length $ implArgs impl
+          when (argc /= arity) $ throwError (IncorrectArity impl t)
+
+          return $ SFuncDefn name t [] (implArgs impl) (PrimType Unit, SUnitLit)
+          -- TODO: Get this working (relies on SExpr)
+          --return $ SFuncDefn name t [] (implArgs impl) (implBody impl)
+
 checkProgram :: Program -> Either SemantError SProgram
 checkProgram prog = evalState (runExceptT (checkProgram' prog)) env
   where
@@ -77,4 +119,5 @@ checkProgram prog = evalState (runExceptT (checkProgram' prog)) env
     checkProgram' prog = do
       types   <- mapM checkTypeDefn $ AST.pTypes prog
       classes <- mapM checkClassDefn $ AST.pClasses prog
-      return $ SProgram types [] [] classes []
+      members <- mapM checkMemberDefn $ AST.pMembers prog
+      return $ SProgram types [] [] classes members
