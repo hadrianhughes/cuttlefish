@@ -40,11 +40,11 @@ data Expr = VarRef       Text
           | UnitLit
           deriving (Show, Eq)
 
-data FuncDefn = FuncDefn { funcName     :: Text
-                         , funcType     :: TypeExpr
-                         , funcTypeConstraints :: [TypeConstraint]
-                         , funcArgs     :: [Bind]
-                         , funcBody     :: Expr } deriving (Show, Eq)
+data FuncDefn = FuncDefn { funcName        :: Text
+                         , funcType        :: TypeExpr
+                         , funcConstraints :: [TypeConstraint]
+                         , funcArgs        :: [Bind]
+                         , funcBody        :: Expr } deriving (Show, Eq)
 
 data ConstDefn = ConstDefn { constName  :: Text
                            , constType  :: Maybe TypeExpr

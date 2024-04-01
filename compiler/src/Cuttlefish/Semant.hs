@@ -123,7 +123,7 @@ checkFuncDefn defn = do
 
   -- Check class constraints exist
   classes <- gets classDefns
-  let constraints = AST.funcTypeConstraints defn
+  let constraints = AST.funcConstraints defn
   forM constraints
     $ \c@(TypeConstraint cn v) -> unless (M.member cn classes)
       $ throwError (UndefinedClass cn $ UCConstraint c)
