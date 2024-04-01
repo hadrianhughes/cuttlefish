@@ -42,6 +42,7 @@ convertTypeExpr expr =
 
 checkTypeDefn :: TypeDefn -> Semant STypeDefn
 checkTypeDefn defn = do
+  -- Check for duplicate definition
   defns <- gets typeDefns
   let name = AST.typeName defn
   when (M.member name defns) $ throwError (DuplicateDefn name DTypeDefn)
@@ -55,6 +56,7 @@ checkTypeDefn defn = do
 
 checkClassDefn :: ClassDefn -> Semant SClassDefn
 checkClassDefn defn = do
+  -- Check for duplicate definition
   defns <- gets classDefns
   let name = AST.className defn
   when (M.member name defns) $ throwError (DuplicateDefn name DClassDefn)
