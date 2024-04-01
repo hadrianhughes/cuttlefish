@@ -6,6 +6,7 @@ import qualified Text.Megaparsec.Char.Lexer as L
 import           Data.Text (Text)
 import           Cuttlefish.Parser.Ast
 import           Cuttlefish.Parser.Core
+import           Cuttlefish.Parser.Utils
 
 primTypeP :: Parser PrimType
 primTypeP = Int   <$ rword "int"

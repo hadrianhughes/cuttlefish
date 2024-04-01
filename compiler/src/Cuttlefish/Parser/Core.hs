@@ -112,12 +112,5 @@ identifier = (lexeme . try) (binopP <|> normalP)
     binopP  = parens hsc binop
     normalP = fmap T.pack $ (:) <$> letterChar <*> many alphaNumChar
 
-maybeList :: Maybe [a] -> [a]
-maybeList (Just xs) = xs
-maybeList Nothing   = []
-
 sepBy2 :: Parser a -> Parser () -> Parser [a]
 sepBy2 p sep = (liftA2 (:)) (p <* sep) (p `sepBy1` sep)
-
-pair :: a -> b -> (a, b)
-pair a b = (a, b)
