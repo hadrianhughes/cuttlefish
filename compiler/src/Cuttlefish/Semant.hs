@@ -20,41 +20,21 @@ type Semant = ExceptT SemantError (State Env)
 resolveTypeExpr :: TypeExpr -> Semant Type
 resolveTypeExpr expr =
   case expr of
-    (FuncTypeExpr e1 e2)    -> FuncType  <$> (resolveTypeExpr e1) <*> (resolveTypeExpr e2)
-    (ListTypeExpr e)        -> ListType  <$> (resolveTypeExpr e)
-    (TupleTypeExpr es)      -> TupleType <$> (mapM resolveTypeExpr es)
-    (StructTypeExpr fields) -> do
+    (FuncTypeExpr e1 e2)     -> FuncType      <$> (resolveTypeExpr e1) <*> (resolveTypeExpr e2)
+    (ListTypeExpr e)         -> ListType      <$> (resolveTypeExpr e)
+    (TupleTypeExpr es)       -> TupleType     <$> (mapM resolveTypeExpr es)
+    (StructTypeExpr fields)  -> do
       vals <- mapM (resolveTypeExpr . snd) fields
       let keys = map fst fields
       return (StructType $ zip keys vals)
-    (EnumTypeExpr cases)    -> EnumType   <$> mapM evalEnumCase cases
-    (EffectTypeExpr e)      -> EffectType <$> resolveTypeExpr e
-    (PrimTypeExpr p)        -> return $ PrimType p
-    (PlaceholderExpr name)  -> return $ Placeholder name
-    (GenericTypeExpr _ _)   -> throwError (IllegalGeneric expr)
+    (EnumTypeExpr cases)     -> EnumType      <$> mapM evalEnumCase cases
+    (EffectTypeExpr e)       -> EffectType    <$> resolveTypeExpr e
+    (GenericTypeExpr n args) -> GenericType n <$> mapM resolveTypeExpr args
+    (PrimTypeExpr p)         -> return $ PrimType p
+    (PlaceholderExpr name)   -> return $ Placeholder name
     where
       evalEnumCase (name, args) = do
         args' <- mapM resolveTypeExpr args
-        return (name, args')
-
-convertTypeExpr :: TypeExpr -> Semant UnresolvedType
-convertTypeExpr expr =
-  case expr of
-    (FuncTypeExpr e1 e2)     -> UFuncType   <$> convertTypeExpr e1 <*> convertTypeExpr e2
-    (ListTypeExpr e)         -> UListType   <$> convertTypeExpr e
-    (TupleTypeExpr es)       -> UTupleType  <$> mapM convertTypeExpr es
-    (StructTypeExpr fs)      -> do
-      vals <- mapM (convertTypeExpr . snd) fs
-      let keys = map fst fs
-      return (UStructType $ zip keys vals)
-    (EnumTypeExpr cases)     -> UEnumType   <$> mapM evalEnumCase cases
-    (EffectTypeExpr e)       -> UEffectType <$> convertTypeExpr e
-    (PrimTypeExpr p)         -> return $ UPrimType p
-    (PlaceholderExpr n)      -> return $ UPlaceholder n
-    (GenericTypeExpr n args) -> UGeneric n <$> mapM convertTypeExpr args
-    where
-      evalEnumCase (name, args) = do
-        args' <- mapM convertTypeExpr args
         return (name, args')
 
 checkTypeDefn :: TypeDefn -> Semant STypeDefn
@@ -83,9 +63,9 @@ checkClassDefn defn = do
 
   return defn'
   where
-    evalSig :: (Text, TypeExpr) -> Semant (Text, UnresolvedType)
+    evalSig :: (Text, TypeExpr) -> Semant (Text, Type)
     evalSig (name, t) = do
-      t' <- convertTypeExpr t
+      t' <- resolveTypeExpr t
       return (name, t')
 
 checkProgram :: Program -> Either SemantError SProgram
