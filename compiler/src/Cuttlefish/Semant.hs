@@ -128,12 +128,18 @@ checkFuncDefn defn = do
     $ \c@(TypeConstraint cn v) -> unless (M.member cn classes)
       $ throwError (UndefinedClass cn $ UCConstraint c)
 
+  -- Check constrained vars are used
+  let args = AST.funcArgs defn
+  forM constraints $ \(TypeConstraint _ var) ->
+    unless (any (bindHasVar var) args) $
+      throwError (UnusedTypeVar var $ UTVFunc defn)
+
   funcType' <- convertTypeExpr $ AST.funcType defn
   return $ SFuncDefn
     name
     funcType'
     constraints
-    (AST.funcArgs defn)
+    args
     -- TODO: Implement actual body (relies on SExpr)
     (PrimType Unit, SUnitLit)
   where

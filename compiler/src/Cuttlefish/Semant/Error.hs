@@ -19,9 +19,9 @@ data SemantError =
   | DuplicateDefn     Name DefnKind
   | UndefinedRef      Name RefKind Expr
   | UndefinedType     Name UndefinedTypeKind
-  | UndefinedTypeVars [Name] TypeExpr
+  | UndefinedTypeVars Name TypeExpr
   | UndefinedClass    Name UndefinedClassKind
-  | UnusedTypeVars    [Name] UnusedTypeVarsLoc
+  | UnusedTypeVar     Name UnusedTypeVarsLoc
   | UnexpectedSig     Name MembershipDefn
   | IncorrectArity    MembershipImpl Type
   | NoMain
