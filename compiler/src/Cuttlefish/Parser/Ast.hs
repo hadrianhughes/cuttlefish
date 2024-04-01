@@ -25,7 +25,7 @@ data TypeDefn = TypeDefn { typeName        :: Text
 data Expr = VarRef       Text
           | ListAccess   Expr Expr
           | StructAccess Expr Text
-          | IfExpr       Expr Expr Expr
+          | IfExpr       { ifEConds :: [(Expr, Expr)], ifEElse :: Expr }
           | FuncCall     { call :: Expr, callArgs :: [Expr] }
           | EffectRun    Expr
           | ListExpr     [Expr]

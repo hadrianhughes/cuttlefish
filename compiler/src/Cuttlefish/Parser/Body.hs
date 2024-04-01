@@ -51,12 +51,16 @@ literalP = try (FloatLit <$> float)
        <|> (L.symbol hsc "()" *> return UnitLit)
 
 ifExprP :: Parser Expr
-ifExprP = IfExpr
-       <$> (rword "if" *> (try operatorP <|> try chainExprP <|> exprP) <* fsc)
-       <*> (rword "then" *> nestedExpr <* fsc)
-       <*> (rword "else" *> nestedExpr <* fsc)
-       where
-        nestedExpr = try blockExprP <|> try operatorP <|> try chainExprP <|> exprP
+ifExprP = rword "if" *> do
+  cond1     <- condExpr
+  then1     <- rword "then" *> nestedExpr <* fsc
+  rest      <- many (try elifExpr)
+  elseBlock <- rword "else" *> nestedExpr
+  return $ IfExpr ((cond1, then1) : rest) elseBlock
+  where
+    condExpr   = try operatorP <|> try chainExprP <|> exprP <* fsc
+    nestedExpr = try blockExprP <|> try operatorP <|> try chainExprP <|> exprP
+    elifExpr   = pair <$> (rword "else" *> rword "if" *> condExpr) <*> (rword "then" *> nestedExpr)
 
 matchExprP :: Parser Expr
 matchExprP = MatchExpr
