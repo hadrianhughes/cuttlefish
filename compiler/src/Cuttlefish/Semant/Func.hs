@@ -8,7 +8,6 @@ import           Cuttlefish.Semant.Core
 import           Cuttlefish.Semant.Error
 import           Cuttlefish.Semant.Sast
 import           Cuttlefish.Semant.Types
-import           Cuttlefish.Semant.Utils
 import qualified Data.Map                as M
 import           Data.Text (Text)
 
@@ -72,3 +71,11 @@ checkFuncDefn defn = do
           (FuncType _ _) -> return t
           _ -> throwError $ InvalidFuncType t defn
         Nothing -> throwError $ UndefinedType typeName (UTFuncDefn defn)
+
+flatFuncType :: Type -> ([Type], Type)
+flatFuncType (FuncType arg rtn) = do
+  let (rest, rtn') = case rtn of
+        (FuncType _ _) -> flatFuncType rtn
+        _              -> ([], rtn)
+  (arg : rest, rtn')
+flatFuncType t = error ("Called with non-function type: " ++ show t)
