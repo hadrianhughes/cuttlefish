@@ -30,10 +30,12 @@ library
     Cuttlefish.Parser.Body
     Cuttlefish.Parser.Core
     Cuttlefish.Parser.Types
+    Cuttlefish.Parser.Utils
     Cuttlefish.Semant
     Cuttlefish.Semant.Error
     Cuttlefish.Semant.Sast
     Cuttlefish.Semant.Utils
+    Cuttlefish.Utils
   hs-source-dirs:
     src
   build-depends:

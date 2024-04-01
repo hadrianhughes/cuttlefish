@@ -6,7 +6,7 @@ import Data.Text (Text)
 
 type Name = Text
 
-data IllegalBindReason  = IBDuplicate | IBUnit deriving Show
+data IllegalBindReason  = IBDuplicate Bind | IBUnit deriving Show
 data DefnKind           = DConstDefn | DFuncDefn | DTypeDefn | DClassDefn deriving Show
 data RefKind            = VarRef | FuncRef deriving Show
 data HeteroTypesKind    = List | Match deriving Show

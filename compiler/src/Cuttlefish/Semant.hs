@@ -3,9 +3,11 @@ module Cuttlefish.Semant where
 import           Control.Monad.Except
 import           Control.Monad.State
 import           Cuttlefish.Parser.Ast   as AST
+import           Cuttlefish.Parser.Utils
 import           Cuttlefish.Semant.Error as SError
 import           Cuttlefish.Semant.Sast  as SAST
 import           Cuttlefish.Semant.Utils
+import           Cuttlefish.Utils
 import           Data.Text (Text)
 import qualified Data.Map                as M
 import qualified Data.Set                as S
@@ -116,6 +118,9 @@ checkFuncDefn defn = do
   let name = AST.funcName defn
   when (M.member name funcs) $ throwError (DuplicateDefn name DFuncDefn)
 
+  -- Check for duplicate binds
+  foldM checkDupArg [] (AST.funcArgs defn)
+
   -- Check class constraints exist
   classes <- gets classDefns
   let constraints = AST.funcTypeConstraints defn
@@ -131,6 +136,18 @@ checkFuncDefn defn = do
     (AST.funcArgs defn)
     -- TODO: Implement actual body (relies on SExpr)
     (PrimType Unit, SUnitLit)
+  where
+    checkDupArg :: [Bind] -> Bind -> Semant [Bind]
+    checkDupArg acc b = do
+      case b of
+        (SimpleBind var)         -> forM_ acc (argError var)
+        (TupleBind bs)           -> forM_ bs (checkDupArg acc)
+        (ConstructorBind _ vars) -> forM_ vars (forM_ acc . argError)
+      return (b:acc)
+    argError :: Text -> Bind -> Semant Bind
+    argError var bind = do
+      when (bindHasVar var bind) $ throwError (IllegalBinding var $ IBDuplicate bind)
+      return bind
 
 
 checkProgram :: Program -> Either SemantError SProgram
