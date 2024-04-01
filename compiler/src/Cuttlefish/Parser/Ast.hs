@@ -15,11 +15,11 @@ data TypeExpr = FuncTypeExpr    TypeExpr TypeExpr
               | GenericTypeExpr Text [TypeExpr]
               deriving (Show, Eq)
 
-data TypeVar = TypeVar { typeVarClass :: Maybe Text
-                       , typeVarName  :: Text } deriving (Show, Eq)
+data TypeConstraint = TypeConstraint { constraintClass :: Text
+                                     , constraintVar   :: Text } deriving (Show, Eq)
 
 data TypeDefn = TypeDefn { typeName :: Text
-                         , typeVars :: [TypeVar]
+                         , typeVars :: [TypeConstraint]
                          , typeExpr :: TypeExpr } deriving (Show, Eq)
 
 data Expr = VarRef       Text
@@ -42,7 +42,7 @@ data Expr = VarRef       Text
 
 data FuncDefn = FuncDefn { funcName     :: Text
                          , funcType     :: TypeExpr
-                         , funcTypeVars :: [TypeVar]
+                         , funcTypeConstraints :: [TypeConstraint]
                          , funcArgs     :: [Bind]
                          , funcBody     :: Expr } deriving (Show, Eq)
 

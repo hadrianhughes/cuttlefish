@@ -77,7 +77,7 @@ checkTypeDefn defn = do
   type' <- resolveTypeExpr $ AST.typeExpr defn
   let defn'         = STypeDefn name (AST.typeVars defn) type'
       varsUsed      = typeVarsUsed type'
-      varsDeclared  = S.fromList $ map typeVarName $ AST.typeVars defn
+      varsDeclared  = S.fromList $ map constraintVar $ AST.typeVars defn
       undefinedVars = S.difference varsUsed varsDeclared
       unusedVars    = S.difference varsDeclared varsUsed
 

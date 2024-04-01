@@ -132,7 +132,7 @@ funcDefnP = parse <* fsc
   where
     parse = do
       name     <- rword "func" *> identifier
-      typeVars <- optional (angles hsc $ some typeVarP)
+      typeVars <- optional (angles hsc $ some typeConstraintP)
       args     <- parens fsc $ argP `sepBy` (comma <* fsc)
       rtnType  <- optional $ L.symbol hsc "->" *> openTypeExprP
       body     <- (L.symbol fsc "=" *> topLevelExprP) <|> blockExprP
@@ -152,7 +152,7 @@ funcDefnP = parse <* fsc
 funcDefnP' :: Parser FuncDefn
 funcDefnP' = do
   (name, funcType) <- rword "func" *> parens hsc nameTypeP
-  typeVars         <- optional (angles hsc $ some typeVarP)
+  typeVars         <- optional (angles hsc $ some typeConstraintP)
   args             <- parens fsc (bindP `sepBy` (comma <* fsc))
   body             <- (L.symbol hsc "=" *> topLevelExprP) <|> blockExprP
 
@@ -170,7 +170,7 @@ funcDefnP' = do
 effectDefnP :: Parser FuncDefn
 effectDefnP = do
   name     <- rword "effect" *> identifier
-  typeVars <- optional (angles hsc $ some typeVarP)
+  typeVars <- optional (angles hsc $ some typeConstraintP)
   args     <- parens fsc $ argP `sepBy` (comma <* fsc)
   rtnType  <- optional $ L.symbol hsc "->" *> openTypeExprP
   body     <- blockExprP

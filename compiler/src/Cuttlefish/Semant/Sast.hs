@@ -61,13 +61,13 @@ data SStatement = SIfStmt     { ifCond :: SExpr
                 deriving (Show, Eq)
 
 data STypeDefn = STypeDefn { typeName :: Text
-                           , typeVars :: [TypeVar]
+                           , typeVars :: [TypeConstraint]
                            , typ      :: Type }
                            deriving (Show, Eq)
 
 data SFuncDefn = SFuncDefn { funcName     :: Text
                            , funcType     :: Type
-                           , funcTypeVars :: [TypeVar]
+                           , funcTypeVars :: [TypeConstraint]
                            , funcArgs     :: [Bind]
                            , funcBody     :: SExpr }
                            deriving (Show, Eq)

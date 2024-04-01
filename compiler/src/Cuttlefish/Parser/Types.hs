@@ -13,9 +13,8 @@ primTypeP = Int   <$ rword "int"
         <|> Char  <$ rword "char"
         <|> Unit  <$ L.symbol hsc "()"
 
-typeVarP :: Parser TypeVar
-typeVarP = try (TypeVar <$> optional typeIdentifier <*> identifier)
-           <|> TypeVar <$> (return Nothing) <*> identifier
+typeConstraintP :: Parser TypeConstraint
+typeConstraintP = try (TypeConstraint <$> typeIdentifier <*> identifier)
 
 dataConstructorP :: Parser (Text, [TypeExpr])
 dataConstructorP = pair
@@ -42,5 +41,5 @@ typeDefnP :: Parser TypeDefn
 typeDefnP = parse <* fsc
   where
     parse = TypeDefn <$> (rword "type" *> typeIdentifier)
-        <*> (maybeList <$> optional (angles hsc (typeVarP `sepBy1` comma)))
+        <*> (maybeList <$> optional (angles hsc (typeConstraintP `sepBy1` comma)))
         <*> (L.symbol fsc "=" *> openTypeExprP)
