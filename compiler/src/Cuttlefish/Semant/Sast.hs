@@ -50,9 +50,9 @@ data SStatement = SIfStmt     { ifCond :: SExpr
                 | SReturnStmt SExpr
                 deriving (Show, Eq)
 
-data STypeDefn = STypeDefn { typeName :: Text
-                           , typeVars :: [TypeConstraint]
-                           , typ      :: Type }
+data STypeDefn = STypeDefn { typeName       :: Text
+                           , typeConstraint :: [TypeConstraint]
+                           , typ            :: Type }
                            deriving (Show, Eq)
 
 data SFuncDefn = SFuncDefn { funcName     :: Text

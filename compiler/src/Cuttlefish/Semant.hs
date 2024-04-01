@@ -47,7 +47,7 @@ checkTypeDefn defn = do
   when (M.member name defns) $ throwError (DuplicateDefn name DTypeDefn)
 
   type' <- convertTypeExpr $ AST.typeExpr defn
-  let defn' = STypeDefn name (AST.typeVars defn) type'
+  let defn' = STypeDefn name (AST.typeConstraints defn) type'
 
   modify $ \env -> env { typeDefns = M.insert name defn' defns }
 

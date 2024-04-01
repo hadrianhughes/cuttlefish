@@ -18,9 +18,9 @@ data TypeExpr = FuncTypeExpr    TypeExpr TypeExpr
 data TypeConstraint = TypeConstraint { constraintClass :: Text
                                      , constraintVar   :: Text } deriving (Show, Eq)
 
-data TypeDefn = TypeDefn { typeName :: Text
-                         , typeVars :: [TypeConstraint]
-                         , typeExpr :: TypeExpr } deriving (Show, Eq)
+data TypeDefn = TypeDefn { typeName        :: Text
+                         , typeConstraints :: [TypeConstraint]
+                         , typeExpr        :: TypeExpr } deriving (Show, Eq)
 
 data Expr = VarRef       Text
           | ListAccess   Expr Expr
