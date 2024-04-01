@@ -21,25 +21,10 @@ data ArityLoc           = ArityMember MembershipImpl Type
 data SemantError =
     IllegalBinding    Name IllegalBindReason
   | DuplicateDefn     Name DefnKind
-  | UndefinedRef      Name RefKind Expr
   | UndefinedType     Name UndefinedTypeKind
-  | UndefinedTypeVars Name TypeExpr
   | UndefinedClass    Name UndefinedClassKind
   | UnusedTypeVar     Name UnusedTypeVarsLoc
   | UnexpectedSig     Name MembershipDefn
   | IncorrectArity    ArityLoc
-  | NoMain
-  | IllegalAssign     { lhs :: Expr }
-  | UnreachableCode   Statement
-  | TypeError         { expected :: Type, received :: Type, loc :: Expr }
-  | UndefinedAccess   { struct :: Expr, field :: Name }
-  | HeteroTypes       { loc :: Expr, locKind :: HeteroTypesKind }
-  | BadStructFields   { typName :: Name
-                      , expFields :: [(Name, Type)]
-                      , recFields :: [(Name, Type)]
-                      , loc :: Expr }
-  | NonExhaustMatch   { matchingTyp :: Type, loc :: Expr }
-  | IllegalEffect     { loc :: Expr, func :: SFuncDefn }
-  | IllegalGeneric    TypeExpr
   | InvalidFuncType   Type FuncDefn
   deriving Show
