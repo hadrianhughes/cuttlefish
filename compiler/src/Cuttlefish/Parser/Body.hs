@@ -155,22 +155,23 @@ funcDefnP = parse <* fsc
 
 -- Supports typing a function with a predefined type
 funcDefnP' :: Parser FuncDefn
-funcDefnP' = do
-  (name, funcType) <- rword "func" *> parens hsc nameTypeP
-  typeVars         <- optional (angles hsc $ some typeConstraintP)
-  args             <- parens fsc (bindP `sepBy` (comma <* fsc))
-  body             <- (L.symbol hsc "=" *> topLevelExprP) <|> blockExprP
-
-  let typeVars' = maybeList typeVars
-
-  return $ FuncDefn
-    name
-    funcType
-    typeVars'
-    args
-    body
+funcDefnP' = parse <* fsc
   where
     nameTypeP = pair <$> identifier <*> (colon *> openTypeExprP)
+    parse = do
+      (name, funcType) <- rword "func" *> parens hsc nameTypeP
+      typeVars         <- optional (angles hsc $ some typeConstraintP)
+      args             <- parens fsc (bindP `sepBy` (comma <* fsc))
+      body             <- (L.symbol hsc "=" *> topLevelExprP) <|> blockExprP
+
+      let typeVars' = maybeList typeVars
+
+      return $ FuncDefn
+        name
+        funcType
+        typeVars'
+        args
+        body
 
 effectDefnP :: Parser FuncDefn
 effectDefnP = do
