@@ -57,17 +57,6 @@ convertTypeExpr expr =
         args' <- mapM convertTypeExpr args
         return (name, args')
 
-typeVarsUsed :: Type -> S.Set Text
-typeVarsUsed = \case
-  (FuncType t1 t2)    -> typeVarsUsed t1 <> typeVarsUsed t2
-  (ListType t)        -> typeVarsUsed t
-  (TupleType ts)      -> S.unions $ map typeVarsUsed ts
-  (StructType fields) -> S.unions $ map (typeVarsUsed . snd) fields
-  (EnumType cases)    -> S.unions $ map typeVarsUsed $ concat $ map snd cases
-  (EffectType t)      -> typeVarsUsed t
-  (Placeholder name)  -> S.singleton name
-  _                   -> S.empty
-
 checkTypeDefn :: TypeDefn -> Semant STypeDefn
 checkTypeDefn defn = do
   defns <- gets typeDefns
@@ -75,14 +64,7 @@ checkTypeDefn defn = do
   when (M.member name defns) $ throwError (DuplicateDefn name DTypeDefn)
 
   type' <- resolveTypeExpr $ AST.typeExpr defn
-  let defn'         = STypeDefn name (AST.typeVars defn) type'
-      varsUsed      = typeVarsUsed type'
-      varsDeclared  = S.fromList $ map constraintVar $ AST.typeVars defn
-      undefinedVars = S.difference varsUsed varsDeclared
-      unusedVars    = S.difference varsDeclared varsUsed
-
-  unless (null undefinedVars) $ throwError (UndefinedTypeVars (S.toList undefinedVars) (AST.typeExpr defn))
-  unless (null unusedVars) $ throwError (UnusedTypeVars (S.toList unusedVars) (UTVType defn))
+  let defn' = STypeDefn name (AST.typeVars defn) type'
 
   modify $ \env -> env { typeDefns = M.insert name defn' defns }
 
