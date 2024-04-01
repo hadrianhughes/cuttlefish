@@ -55,11 +55,11 @@ data STypeDefn = STypeDefn { typeName       :: Text
                            , typ            :: Type }
                            deriving (Show, Eq)
 
-data SFuncDefn = SFuncDefn { funcName     :: Text
-                           , funcType     :: Type
-                           , funcTypeVars :: [TypeConstraint]
-                           , funcArgs     :: [Bind]
-                           , funcBody     :: SExpr }
+data SFuncDefn = SFuncDefn { funcName        :: Text
+                           , funcType        :: Type
+                           , funcConstraints :: [TypeConstraint]
+                           , funcArgs        :: [Bind]
+                           , funcBody        :: SExpr }
                            deriving (Show, Eq)
 
 data SConstDefn = SConstDefn { constName  :: Text

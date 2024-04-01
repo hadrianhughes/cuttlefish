@@ -10,13 +10,10 @@ import           Data.Text (Text)
 import qualified Data.Map                as M
 import qualified Data.Set                as S
 
-type TypeDefns   = M.Map Text STypeDefn
-type ClassDefns  = M.Map Text SClassDefn
-type MemberDefns = M.Map Text SMembershipDefn
-
-data Env = Env { typeDefns   :: TypeDefns
-               , classDefns  :: ClassDefns
-               , memberDefns :: MemberDefns }
+data Env = Env { typeDefns   :: M.Map Text STypeDefn
+               , classDefns  :: M.Map Text SClassDefn
+               , memberDefns :: M.Map Text SMembershipDefn
+               , funcDefns   :: M.Map Text SFuncDefn }
 
 type Semant = ExceptT SemantError (State Env)
 
@@ -112,14 +109,41 @@ checkMemberDefn defn = do
           -- TODO: Get this working (relies on SExpr)
           --return $ SFuncDefn name t [] (implArgs impl) (implBody impl)
 
+checkFuncDefn :: FuncDefn -> Semant SFuncDefn
+checkFuncDefn defn = do
+  -- Check for duplicate definitions
+  funcs <- gets funcDefns
+  let name = AST.funcName defn
+  when (M.member name funcs) $ throwError (DuplicateDefn name DFuncDefn)
+
+  -- Check class constraints exist
+  classes <- gets classDefns
+  let constraints = AST.funcTypeConstraints defn
+  forM constraints
+    $ \c@(TypeConstraint cn v) -> unless (M.member cn classes)
+      $ throwError (UndefinedClass cn $ UCConstraint c)
+
+  funcType' <- convertTypeExpr $ AST.funcType defn
+  return $ SFuncDefn
+    name
+    funcType'
+    constraints
+    (AST.funcArgs defn)
+    -- TODO: Implement actual body (relies on SExpr)
+    (PrimType Unit, SUnitLit)
+
+
 checkProgram :: Program -> Either SemantError SProgram
 checkProgram prog = evalState (runExceptT (checkProgram' prog)) env
   where
-    env = Env { typeDefns = M.empty, classDefns = M.empty }
+    env = Env { typeDefns  = M.empty
+              , classDefns = M.empty
+              , funcDefns  = M.empty }
 
     checkProgram' :: Program -> Semant SProgram
     checkProgram' prog = do
-      types   <- mapM checkTypeDefn $ AST.pTypes prog
-      classes <- mapM checkClassDefn $ AST.pClasses prog
+      types   <- mapM checkTypeDefn   $ AST.pTypes prog
+      classes <- mapM checkClassDefn  $ AST.pClasses prog
       members <- mapM checkMemberDefn $ AST.pMembers prog
-      return $ SProgram types [] [] classes members
+      funcs   <- mapM checkFuncDefn   $ AST.pFuncs prog
+      return $ SProgram types [] funcs classes members
