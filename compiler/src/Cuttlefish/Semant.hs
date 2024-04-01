@@ -105,7 +105,7 @@ checkMemberDefn defn = do
           let (args, rtn) = flatFuncType t
               arity       = length args
               argc        = length $ implArgs impl
-          when (argc /= arity) $ throwError (IncorrectArity impl t)
+          when (argc /= arity) $ throwError (IncorrectArity $ ArityMember impl t)
 
           return $ SFuncDefn name t [] (implArgs impl) (PrimType Unit, SUnitLit)
           -- TODO: Get this working (relies on SExpr)
@@ -134,10 +134,14 @@ checkFuncDefn defn = do
     unless (any (bindHasVar var) args) $
       throwError (UnusedTypeVar var $ UTVFunc defn)
 
-  funcType' <- convertTypeExpr $ AST.funcType defn
+  -- Check for appropriate number of binds
+  funcType <- convertTypeExpr $ AST.funcType defn
+  let (argTypes, _) = flatFuncType funcType
+  when (length argTypes /= length args) $ throwError (IncorrectArity $ ArityFunc defn)
+
   return $ SFuncDefn
     name
-    funcType'
+    funcType
     constraints
     args
     -- TODO: Implement actual body (relies on SExpr)

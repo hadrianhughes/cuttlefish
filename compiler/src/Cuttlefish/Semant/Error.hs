@@ -13,6 +13,9 @@ data HeteroTypesKind    = List | Match deriving Show
 data UnusedTypeVarsLoc  = UTVType TypeDefn | UTVFunc FuncDefn deriving Show
 data UndefinedClassKind = UCMemberDefn MembershipDefn | UCConstraint TypeConstraint deriving Show
 data UndefinedTypeKind  = UTExpr Expr | UTMemberDefn MembershipDefn deriving Show
+data ArityLoc           = ArityMember MembershipImpl Type
+                        | ArityFunc   FuncDefn
+                        deriving Show
 
 data SemantError =
     IllegalBinding    Name IllegalBindReason
@@ -23,7 +26,7 @@ data SemantError =
   | UndefinedClass    Name UndefinedClassKind
   | UnusedTypeVar     Name UnusedTypeVarsLoc
   | UnexpectedSig     Name MembershipDefn
-  | IncorrectArity    MembershipImpl Type
+  | IncorrectArity    ArityLoc
   | NoMain
   | IllegalAssign     { lhs :: Expr }
   | UnreachableCode   Statement
