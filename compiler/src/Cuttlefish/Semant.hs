@@ -17,24 +17,44 @@ data Env = Env { typeDefns  :: TypeDefns
 
 type Semant = ExceptT SemantError (State Env)
 
-typeofTypeExpr :: TypeExpr -> Semant Type
-typeofTypeExpr expr =
+resolveTypeExpr :: TypeExpr -> Semant Type
+resolveTypeExpr expr =
   case expr of
-    (FuncTypeExpr e1 e2)    -> FuncType  <$> (typeofTypeExpr e1) <*> (typeofTypeExpr e2)
-    (ListTypeExpr e)        -> ListType  <$> (typeofTypeExpr e)
-    (TupleTypeExpr es)      -> TupleType <$> (mapM typeofTypeExpr es)
+    (FuncTypeExpr e1 e2)    -> FuncType  <$> (resolveTypeExpr e1) <*> (resolveTypeExpr e2)
+    (ListTypeExpr e)        -> ListType  <$> (resolveTypeExpr e)
+    (TupleTypeExpr es)      -> TupleType <$> (mapM resolveTypeExpr es)
     (StructTypeExpr fields) -> do
-      vals <- mapM (typeofTypeExpr . snd) fields
+      vals <- mapM (resolveTypeExpr . snd) fields
       let keys = map fst fields
       return (StructType $ zip keys vals)
     (EnumTypeExpr cases)    -> EnumType   <$> mapM evalEnumCase cases
-    (EffectTypeExpr e)      -> EffectType <$> typeofTypeExpr e
+    (EffectTypeExpr e)      -> EffectType <$> resolveTypeExpr e
     (PrimTypeExpr p)        -> return $ PrimType p
     (PlaceholderExpr name)  -> return $ Placeholder name
     (GenericTypeExpr _ _)   -> throwError (IllegalGeneric expr)
     where
       evalEnumCase (name, args) = do
-        args' <- mapM typeofTypeExpr args
+        args' <- mapM resolveTypeExpr args
+        return (name, args')
+
+convertTypeExpr :: TypeExpr -> Semant UnresolvedType
+convertTypeExpr expr =
+  case expr of
+    (FuncTypeExpr e1 e2)     -> UFuncType   <$> convertTypeExpr e1 <*> convertTypeExpr e2
+    (ListTypeExpr e)         -> UListType   <$> convertTypeExpr e
+    (TupleTypeExpr es)       -> UTupleType  <$> mapM convertTypeExpr es
+    (StructTypeExpr fs)      -> do
+      vals <- mapM (convertTypeExpr . snd) fs
+      let keys = map fst fs
+      return (UStructType $ zip keys vals)
+    (EnumTypeExpr cases)     -> UEnumType   <$> mapM evalEnumCase cases
+    (EffectTypeExpr e)       -> UEffectType <$> convertTypeExpr e
+    (PrimTypeExpr p)         -> return $ UPrimType p
+    (PlaceholderExpr n)      -> return $ UPlaceholder n
+    (GenericTypeExpr n args) -> UGeneric n <$> mapM convertTypeExpr args
+    where
+      evalEnumCase (name, args) = do
+        args' <- mapM convertTypeExpr args
         return (name, args')
 
 typeVarsUsed :: Type -> S.Set Text
@@ -54,7 +74,7 @@ checkTypeDefn defn = do
   let name = AST.typeName defn
   when (M.member name defns) $ throwError (DuplicateDefn name DTypeDefn)
 
-  type' <- typeofTypeExpr $ AST.typeExpr defn
+  type' <- resolveTypeExpr $ AST.typeExpr defn
   let defn'         = STypeDefn name (AST.typeVars defn) type'
       varsUsed      = typeVarsUsed type'
       varsDeclared  = S.fromList $ map typeVarName $ AST.typeVars defn
@@ -81,9 +101,9 @@ checkClassDefn defn = do
 
   return defn'
   where
-    evalSig :: (Text, TypeExpr) -> Semant (Text, Type)
+    evalSig :: (Text, TypeExpr) -> Semant (Text, UnresolvedType)
     evalSig (name, t) = do
-      t' <- typeofTypeExpr t
+      t' <- convertTypeExpr t
       return (name, t')
 
 checkProgram :: Program -> Either SemantError SProgram

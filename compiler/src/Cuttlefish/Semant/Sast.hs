@@ -16,6 +16,17 @@ data Type = PrimType    PrimType
           | Placeholder Text
           deriving (Show, Eq)
 
+data UnresolvedType = UPrimType    PrimType
+                    | UFuncType    UnresolvedType UnresolvedType
+                    | UListType    UnresolvedType
+                    | UTupleType   [UnresolvedType]
+                    | UStructType  [(Text, UnresolvedType)]
+                    | UEnumType    [(Text, [UnresolvedType])]
+                    | UEffectType  UnresolvedType
+                    | UPlaceholder Text
+                    | UGeneric     Text [UnresolvedType]
+                    deriving (Show, Eq)
+
 type SExpr = (Type, SExpr')
 data SExpr' = SVarRef       Text
             | SListAccess   SExpr SExpr
@@ -68,7 +79,7 @@ data SConstDefn = SConstDefn { constName  :: Text
 
 data SClassDefn = SClassDefn { className :: Text
                              , classVar  :: Text
-                             , classSigs :: [(Text, Type)]}
+                             , classSigs :: [(Text, UnresolvedType)]}
                              deriving (Show, Eq)
 
 data SMembershipDefn = SMembershipDefn { membClass :: Text
