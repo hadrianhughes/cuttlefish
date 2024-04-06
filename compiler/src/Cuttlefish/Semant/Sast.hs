@@ -15,13 +15,13 @@ data Type = PrimType    PrimType
           | EffectType  Type
           | Placeholder Text
           | GenericType Text [Type]
-          deriving (Show, Eq)
+          deriving (Show, Eq, Ord)
 
 type SExpr = (Type, SExpr')
 data SExpr' = SVarRef       Text
             | SListAccess   SExpr SExpr
             | SStructAccess SExpr Text
-            | SIfExpr       SExpr SExpr
+            | SIfExpr       { ifEConds :: M.Map SExpr SExpr, ifEElse :: SExpr }
             | SFuncCall     { call :: SExpr, callArgs :: [SExpr] }
             | SEffectRun    SExpr
             | SListExpr     [SExpr]
@@ -34,7 +34,7 @@ data SExpr' = SVarRef       Text
             | SStrLit       Text
             | SFloatLit     Double
             | SUnitLit
-            deriving (Show, Eq)
+            deriving (Show, Eq, Ord)
 
 data SStatement = SIfStmt     { ifCond :: SExpr
                               , ifThen :: [SStatement]
@@ -48,7 +48,7 @@ data SStatement = SIfStmt     { ifCond :: SExpr
                               , forList :: SExpr
                               , forBody :: SExpr }
                 | SReturnStmt SExpr
-                deriving (Show, Eq)
+                deriving (Show, Eq, Ord)
 
 data STypeDefn = STypeDefn { typeName       :: Text
                            , typeConstraint :: [TypeConstraint]
