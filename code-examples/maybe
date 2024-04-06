@@ -1,0 +1,12 @@
+class Functor f {
+  func fmap (a -> b, f<a>) f<b>
+}
+
+type Maybe = Some(a) | Nothing
+
+member Functor Maybe {
+  func fmap (f, mx) = match mx {
+    Some(x) -> Some(f(x)),
+    Nothing -> Nothing
+  }
+}
