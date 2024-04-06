@@ -1,6 +1,7 @@
 module Cuttlefish.Parser.Body where
 
 import           Data.Char
+import qualified Data.Map                   as M
 import           Data.Maybe
 import           Data.Either
 import           Text.Megaparsec
@@ -57,7 +58,7 @@ ifExprP = rword "if" *> do
   then1     <- rword "then" *> nestedExpr <* fsc
   rest      <- many (try elifExpr)
   elseBlock <- rword "else" *> nestedExpr
-  return $ IfExpr ((cond1, then1) : rest) elseBlock
+  return $ IfExpr (M.fromList $ (cond1, then1) : rest) elseBlock
   where
     condExpr   = try operatorP <|> try chainExprP <|> exprP <* fsc
     nestedExpr = try blockExprP <|> try operatorP <|> try chainExprP <|> exprP
@@ -66,7 +67,7 @@ ifExprP = rword "if" *> do
 matchExprP :: Parser Expr
 matchExprP = MatchExpr
   <$> (rword "match" *> bindP)
-  <*> braces fsc (caseP `sepBy1` (comma <* fsc))
+  <*> (M.fromList <$> braces fsc (caseP `sepBy1` (comma <* fsc)))
   where
     caseP = pair <$> bindP <*> (L.symbol fsc "->" *> topLevelExprP)
 
@@ -77,7 +78,7 @@ tupleExprP :: Parser Expr
 tupleExprP = TupleExpr <$> parens fsc (topLevelExprP `sepBy2` comma)
 
 structExprP :: Parser Expr
-structExprP = StructExpr <$> braces fsc (keyValPair `sepBy` comma <* fsc)
+structExprP = (StructExpr . M.fromList) <$> braces fsc (keyValPair `sepBy` comma <* fsc)
   where
     keyValPair = pair <$> (identifier <* colon <* fsc) <*> exprP
 
@@ -200,7 +201,7 @@ ifStmtP = rword "if" *> do
   then1     <- blockExprP
   rest      <- many (try elifExpr)
   elseBlock <- optional (pair <$> rword "else" *> blockExprP)
-  return $ IfStmt ((cond1, then1) : rest) elseBlock
+  return $ IfStmt (M.fromList $ (cond1, then1) : rest) elseBlock
   where
     condExpr = try operatorP <|> try chainExprP <|> exprP
     elifExpr = pair <$> (rword "else" *> rword "if" *> condExpr) <*> blockExprP
@@ -244,7 +245,7 @@ classDefnP :: Parser ClassDefn
 classDefnP = ClassDefn
   <$> (rword "class" *> typeIdentifier)
   <*> identifier
-  <*> manyInBraces funcSig
+  <*> (M.fromList <$> manyInBraces funcSig)
   where
     funcSig :: Parser (Text, TypeExpr)
     funcSig = rword "func" *> do

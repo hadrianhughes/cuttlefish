@@ -3,6 +3,7 @@ module Cuttlefish.Parser.Types where
 import           Text.Megaparsec
 import           Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
+import qualified Data.Map                   as M
 import           Data.Text (Text)
 import           Cuttlefish.Parser.Ast
 import           Cuttlefish.Parser.Core
@@ -25,10 +26,10 @@ dataConstructorP = pair
 closedTypeExprP :: Parser TypeExpr
 closedTypeExprP = try (ListTypeExpr    <$> brackets hsc openTypeExprP)
               <|> try (TupleTypeExpr   <$> parens hsc (openTypeExprP `sepBy1` comma))
-              <|> try (StructTypeExpr  <$> braces fsc (keyValPair `sepBy` (comma <* fsc)))
+              <|> try ((StructTypeExpr . M.fromList) <$> braces fsc (keyValPair `sepBy` (comma <* fsc)))
               <|> try (EffectTypeExpr  <$> (rword "effect" *> angles hsc openTypeExprP))
               <|> try (GenericTypeExpr <$> identifier <*> angles hsc (openTypeExprP `sepBy1` comma))
-              <|> try (EnumTypeExpr    <$> dataConstructorP `sepBy1` pipe)
+              <|> try ((EnumTypeExpr . M.fromList) <$> dataConstructorP `sepBy1` pipe)
               <|> try (PrimTypeExpr    <$> primTypeP)
               <|> PlaceholderExpr      <$> identifier
               where

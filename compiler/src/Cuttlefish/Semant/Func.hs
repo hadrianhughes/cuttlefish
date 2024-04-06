@@ -37,9 +37,12 @@ checkFuncDefn defn = do
   -- Check for appropriate number of binds
   funcType <-  convertTypeExpr $ AST.funcType defn
   funcType' <- case funcType of
-    (FuncType _ _)            -> return funcType
-    (EnumType ((name, _):[])) -> resolveExplicitType name
-    _ -> error $ "Function has invalid type: " ++ show funcType
+    (FuncType _ _)   -> return funcType
+    (EnumType cases) ->
+      case M.keys cases of
+        (name:[]) -> resolveExplicitType name
+        _         -> throwInvalidFuncType funcType
+    _ -> throwInvalidFuncType funcType
 
   let (argTypes, _) = flatFuncType funcType'
   when (length argTypes /= length args) $ throwError (IncorrectArity $ ArityFunc defn)
@@ -71,6 +74,7 @@ checkFuncDefn defn = do
           (FuncType _ _) -> return t
           _ -> throwError $ InvalidFuncType t defn
         Nothing -> throwError $ UndefinedType typeName (UTFuncDefn defn)
+    throwInvalidFuncType t = error $ "Function has invalid type: " ++ show t
 
 flatFuncType :: Type -> ([Type], Type)
 flatFuncType (FuncType arg rtn) = do

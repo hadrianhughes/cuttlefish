@@ -1,19 +1,20 @@
 module Cuttlefish.Parser.Ast where
 
-import Data.Text (Text)
+import qualified Data.Map              as M
+import           Data.Text (Text)
 
-data PrimType = Int | Float | Char | Unit deriving (Show, Eq)
+data PrimType = Int | Float | Char | Unit deriving (Show, Eq, Ord)
 
 data TypeExpr = FuncTypeExpr    TypeExpr TypeExpr
               | ListTypeExpr    TypeExpr
               | TupleTypeExpr   [TypeExpr]
-              | StructTypeExpr  [(Text, TypeExpr)]
-              | EnumTypeExpr    [(Text, [TypeExpr])]
+              | StructTypeExpr  (M.Map Text TypeExpr)
+              | EnumTypeExpr    (M.Map Text [TypeExpr])
               | EffectTypeExpr  TypeExpr
               | PlaceholderExpr Text
               | PrimTypeExpr    PrimType
               | GenericTypeExpr Text [TypeExpr]
-              deriving (Show, Eq)
+              deriving (Show, Eq, Ord)
 
 data TypeConstraint = TypeConstraint { constraintClass :: Text
                                      , constraintVar   :: Text } deriving (Show, Eq)
@@ -25,20 +26,20 @@ data TypeDefn = TypeDefn { typeName        :: Text
 data Expr = VarRef       Text
           | ListAccess   Expr Expr
           | StructAccess Expr Text
-          | IfExpr       { ifEConds :: [(Expr, Expr)], ifEElse :: Expr }
+          | IfExpr       { ifEConds :: M.Map Expr Expr, ifEElse :: Expr }
           | FuncCall     { call :: Expr, callArgs :: [Expr] }
           | EffectRun    Expr
           | ListExpr     [Expr]
           | TupleExpr    [Expr]
-          | StructExpr   [(Text, Expr)]
-          | MatchExpr    Bind [(Bind, Expr)]
+          | StructExpr   (M.Map Text Expr)
+          | MatchExpr    Bind (M.Map Bind Expr)
           | BlockExpr    [Statement]
           | IntLit       Int
           | CharLit      Char
           | StrLit       Text
           | FloatLit     Double
           | UnitLit
-          deriving (Show, Eq)
+          deriving (Show, Eq, Ord)
 
 data FuncDefn = FuncDefn { funcName        :: Text
                          , funcType        :: TypeExpr
@@ -52,7 +53,7 @@ data ConstDefn = ConstDefn { constName  :: Text
 
 data ClassDefn = ClassDefn { className :: Text
                            , classVar  :: Text
-                           , classSigs :: [(Text, TypeExpr)] } deriving (Show, Eq)
+                           , classSigs :: M.Map Text TypeExpr } deriving (Show, Eq)
 
 data MembershipImpl = MembershipImpl { implName     :: Text
                                      , implArgs     :: [Bind]
@@ -66,9 +67,9 @@ data MembershipDefn = MembershipDefn { membClass :: Text
 data Bind = SimpleBind      Text
           | TupleBind       [Bind]
           | ConstructorBind Text [Text]
-          deriving (Show, Eq)
+          deriving (Show, Eq, Ord)
 
-data Statement = IfStmt     { ifConds :: [(Expr, Expr)]
+data Statement = IfStmt     { ifConds :: M.Map Expr Expr
                             , ifElse  :: Maybe Expr }
                | VarDecl    { varName  :: Text
                             , varType  :: Maybe TypeExpr
@@ -79,7 +80,7 @@ data Statement = IfStmt     { ifConds :: [(Expr, Expr)]
                             , forList :: Expr
                             , forBody :: Expr }
                | ReturnStmt Expr
-               deriving (Show, Eq)
+               deriving (Show, Eq, Ord)
 
 data Program = Program { pTypes   :: [TypeDefn]
                        , pConsts  :: [ConstDefn]

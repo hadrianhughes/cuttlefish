@@ -29,11 +29,10 @@ checkMemberDefn defn = do
     checkImpl :: SClassDefn -> MembershipImpl -> Semant SFuncDefn
     checkImpl classDefn impl = do
       let sigs   = SAST.classSigs classDefn
-          sigMap = M.fromList sigs
 
       -- Check func belongs to class
       let name = implName impl
-          sig  = M.lookup name sigMap
+          sig  = M.lookup name sigs
 
       case sig of
         Nothing -> throwError (UnexpectedSig name defn)

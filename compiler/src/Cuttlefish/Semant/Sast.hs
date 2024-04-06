@@ -10,8 +10,8 @@ data Type = PrimType    PrimType
           | FuncType    Type Type
           | ListType    Type
           | TupleType   [Type]
-          | StructType  [(Text, Type)]
-          | EnumType    [(Text, [Type])]
+          | StructType  (M.Map Text Type)
+          | EnumType    (M.Map Text [Type])
           | EffectType  Type
           | Placeholder Text
           | GenericType Text [Type]
@@ -26,7 +26,7 @@ data SExpr' = SVarRef       Text
             | SEffectRun    SExpr
             | SListExpr     [SExpr]
             | STupleExpr    [SExpr]
-            | SStructExpr   Text [(Text, SExpr)]
+            | SStructExpr   Text (M.Map Text SExpr)
             | SMatchExpr    Bind
             | SBlockExpr    [SStatement]
             | SIntLit       Int
@@ -69,7 +69,7 @@ data SConstDefn = SConstDefn { constName  :: Text
 
 data SClassDefn = SClassDefn { className :: Text
                              , classVar  :: Text
-                             , classSigs :: [(Text, Type)]}
+                             , classSigs :: M.Map Text Type }
                              deriving (Show, Eq)
 
 data SMembershipDefn = SMembershipDefn { membClass :: Text

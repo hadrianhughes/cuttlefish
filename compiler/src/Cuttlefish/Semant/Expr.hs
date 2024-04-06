@@ -8,11 +8,11 @@ import Cuttlefish.Semant.Sast
 
 checkExpr :: Expr -> Semant SExpr
 checkExpr = \case
-  (IntLit i)   -> pure (PrimType Int, SIntLit i)
-  (CharLit c)  -> pure (PrimType Char, SCharLit c)
-  (StrLit s)   -> pure (ListType $ PrimType Char, SStrLit s)
-  (FloatLit f) -> pure (PrimType Float, SFloatLit f)
-  UnitLit      -> pure (PrimType Unit, SUnitLit)
+  IntLit i   -> pure (PrimType Int, SIntLit i)
+  CharLit c  -> pure (PrimType Char, SCharLit c)
+  StrLit s   -> pure (ListType $ PrimType Char, SStrLit s)
+  FloatLit f -> pure (PrimType Float, SFloatLit f)
+  UnitLit    -> pure (PrimType Unit, SUnitLit)
   ListAccess list idx -> do
     list'@(listType, listExpr)     <- checkExpr list
     -- TODO: Solution for correct list type in error
