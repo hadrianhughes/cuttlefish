@@ -27,4 +27,5 @@ data SemantError =
   | UnexpectedSig     Name MembershipDefn
   | IncorrectArity    ArityLoc
   | InvalidFuncType   Type FuncDefn
+  | TypeError         { exp :: Type, act :: Type, loc :: SExpr' }
   deriving Show
