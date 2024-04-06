@@ -33,6 +33,7 @@ library
     Cuttlefish.Parser.Utils
     Cuttlefish.Semant
     Cuttlefish.Semant.Error
+    Cuttlefish.Semant.Expr
     Cuttlefish.Semant.Func
     Cuttlefish.Semant.Class
     Cuttlefish.Semant.Core

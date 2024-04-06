@@ -15,9 +15,11 @@ import qualified Data.Map                as M
 checkProgram :: Program -> Either SemantError SProgram
 checkProgram prog = evalState (runExceptT (checkProgram' prog)) env
   where
-    env = Env { typeDefns  = M.empty
-              , classDefns = M.empty
-              , funcDefns  = M.empty }
+    env = Env { typeDefns   = M.empty
+              , classDefns  = M.empty
+              , memberDefns = M.empty
+              , funcDefns   = M.empty
+              , localVars   = M.empty }
 
     checkProgram' :: Program -> Semant SProgram
     checkProgram' prog = do
