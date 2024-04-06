@@ -19,13 +19,14 @@ data ArityLoc           = ArityMember MembershipImpl Type
                         | ArityFunc   FuncDefn deriving Show
 
 data SemantError =
-    IllegalBinding    Name IllegalBindReason
-  | DuplicateDefn     Name DefnKind
-  | UndefinedType     Name UndefinedTypeKind
-  | UndefinedClass    Name UndefinedClassKind
-  | UnusedTypeVar     Name UnusedTypeVarsLoc
-  | UnexpectedSig     Name MembershipDefn
-  | IncorrectArity    ArityLoc
-  | InvalidFuncType   Type FuncDefn
-  | TypeError         { exp :: Type, act :: Type, loc :: SExpr' }
+    IllegalBinding  Name IllegalBindReason
+  | DuplicateDefn   Name DefnKind
+  | UndefinedType   Name UndefinedTypeKind
+  | UndefinedClass  Name UndefinedClassKind
+  | UnusedTypeVar   Name UnusedTypeVarsLoc
+  | UnexpectedSig   Name MembershipDefn
+  | IncorrectArity  ArityLoc
+  | InvalidFuncType Type FuncDefn
+  | TypeError       { exp :: Type, act :: Type, loc :: SExpr' }
+  | UndefinedField  SExpr Name
   deriving Show

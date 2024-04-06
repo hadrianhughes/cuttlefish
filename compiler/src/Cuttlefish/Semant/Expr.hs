@@ -5,6 +5,7 @@ import Cuttlefish.Parser.Ast
 import Cuttlefish.Semant.Core
 import Cuttlefish.Semant.Error
 import Cuttlefish.Semant.Sast
+import                         qualified Data.Map as M
 
 checkExpr :: Expr -> Semant SExpr
 checkExpr = \case
@@ -26,6 +27,15 @@ checkExpr = \case
       $ TypeError (PrimType Int) idxType idxExpr
 
     pure (listType, SListAccess list' idx')
+  StructAccess struct field -> do
+    struct'@(strType, strExpr) <- checkExpr struct
+    -- TODO: Solution for correct struct type in error
+    case strType of
+      StructType st ->
+        case M.lookup field st of
+          Just t  -> return (t, SStructAccess struct' field)
+          Nothing -> throwError $ UndefinedField struct' field
+      _ -> throwError $ TypeError (StructType M.empty) strType strExpr
   where
     isList :: Type -> Bool
     isList = \case
