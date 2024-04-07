@@ -70,6 +70,10 @@ checkExpr = \case
         pure expr'
       -- TODO: Implement correct effect type in error
       _ -> throwError $ TypeError (EffectType $ PrimType Unit) exprType exprVal
+  ListExpr elmnts -> do
+    elmnts' <- mapM checkExpr elmnts
+    -- TODO: Check element types match list type and return correct type
+    pure (ListType $ PrimType Unit, SListExpr elmnts')
   where
     checkIfCond :: (Expr, Expr) -> Semant (SExpr, SExpr)
     checkIfCond (cond, expr) = do
