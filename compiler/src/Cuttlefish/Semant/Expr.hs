@@ -9,7 +9,9 @@ import Cuttlefish.Semant.Error
 import Cuttlefish.Semant.Sast
 import Cuttlefish.Semant.Types
 import Cuttlefish.Semant.Utils
+import Cuttlefish.Utils
 import                         qualified Data.Map as M
+import Data.Maybe
 
 checkExpr :: Expr -> Semant SExpr
 checkExpr = \case
@@ -82,6 +84,18 @@ checkExpr = \case
     props' <- traverse checkExpr props
     -- TODO: Check struct properties match type
     pure (StructType M.empty, SStructExpr props')
+  expr@(MatchExpr e cases) -> do
+    expr' <- checkExpr e
+    let asserts =
+          case expr' of
+            (TupleType _, _) -> \(xs, x) -> traverse (assertTupleBind expr') xs >> traverse (assertSimpleBind expr') (maybeToList x)
+            (EnumType _, _)  -> \(xs, x) -> traverse (assertConstructorBind expr') xs >> traverse (assertSimpleBind expr') (maybeToList x)
+            _                -> \_       -> pure []
+
+    asserts (splitLast $ M.keys cases)
+    cases' <- traverse checkExpr cases
+
+    pure (PrimType Unit, SMatchExpr expr' cases')
   expr@(VarRef name) -> do
     localVars <- gets localVars
     case M.lookup name localVars of
@@ -104,6 +118,18 @@ checkExpr = \case
           -- TODO: Figure out correct expected type
           expr' <- checkExpr expr
           pure (cond', expr')
+    assertTupleBind :: SExpr -> Bind -> Semant ()
+    assertTupleBind s = \case
+      TupleBind _ -> pure ()
+      bind        -> throwError $ PatternMismatch bind s
+    assertConstructorBind :: SExpr -> Bind -> Semant ()
+    assertConstructorBind s = \case
+      ConstructorBind _ _ -> pure ()
+      bind                -> throwError $ PatternMismatch bind s
+    assertSimpleBind :: SExpr -> Bind -> Semant ()
+    assertSimpleBind s = \case
+      SimpleBind _ -> pure ()
+      bind         -> throwError $ PatternMismatch bind s
 
 assertType :: Type -> SExpr -> Semant ()
 assertType t (et, expr) =

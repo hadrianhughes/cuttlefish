@@ -9,6 +9,16 @@ bindHasVar var = \case
   (TupleBind binds)        -> any (bindHasVar var) binds
   (ConstructorBind _ vars) -> any (== var) vars
 
+data BindType = SimpleBindType
+              | TupleBindType
+              | ConstructorBindType
+
+bindType :: Bind -> BindType
+bindType = \case
+  SimpleBind _        -> SimpleBindType
+  TupleBind _         -> TupleBindType
+  ConstructorBind _ _ -> ConstructorBindType
+
 pair :: a -> b -> (a, b)
 pair a b = (a, b)
 

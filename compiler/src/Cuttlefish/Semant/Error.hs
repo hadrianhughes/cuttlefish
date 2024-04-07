@@ -32,4 +32,5 @@ data SemantError =
   | TypeError       { exp :: Type, act :: Type, loc :: SExpr' }
   | UndefinedField  SExpr Name
   | UndefinedVar    Text Expr
+  | PatternMismatch Bind SExpr
   deriving Show
