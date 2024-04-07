@@ -82,6 +82,13 @@ checkExpr = \case
     props' <- traverse checkExpr props
     -- TODO: Check struct properties match type
     pure (StructType M.empty, SStructExpr props')
+  expr@(VarRef name) -> do
+    localVars <- gets localVars
+    case M.lookup name localVars of
+      Nothing -> throwError $ UndefinedVar name expr
+      Just (var@(varType, _), _) -> do
+        -- TODO: Check var has the correct type
+        pure $ (varType, SVarRef name)
   where
     checkIfCond :: (Expr, Expr) -> Semant (SExpr, SExpr)
     checkIfCond (cond, expr) = do

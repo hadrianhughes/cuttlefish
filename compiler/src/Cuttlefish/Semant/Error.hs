@@ -8,7 +8,7 @@ type Name = Text
 
 data IllegalBindReason  = IBDuplicate Bind | IBUnit deriving Show
 data DefnKind           = DConstDefn | DFuncDefn | DTypeDefn | DClassDefn deriving Show
-data RefKind            = VarRef | FuncRef deriving Show
+data RefKind            = RefVar | RefFunc deriving Show
 data HeteroTypesKind    = List | Match deriving Show
 data UnusedTypeVarsLoc  = UTVType TypeDefn | UTVFunc FuncDefn deriving Show
 data UndefinedClassKind = UCMemberDefn MembershipDefn | UCConstraint TypeConstraint deriving Show
@@ -31,4 +31,5 @@ data SemantError =
   | InvalidFuncType Type FuncDefn
   | TypeError       { exp :: Type, act :: Type, loc :: SExpr' }
   | UndefinedField  SExpr Name
+  | UndefinedVar    Text Expr
   deriving Show

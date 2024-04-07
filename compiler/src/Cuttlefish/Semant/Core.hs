@@ -13,6 +13,6 @@ data Env = Env { typeDefns   :: M.Map Text STypeDefn
                , classDefns  :: M.Map Text SClassDefn
                , memberDefns :: M.Map Text SMembershipDefn
                , funcDefns   :: M.Map Text SFuncDefn
-               , localVars   :: M.Map (Text, VarLoc) SExpr }
+               , localVars   :: M.Map Text (SExpr, VarLoc) }
 
 type Semant = ExceptT SemantError (State Env)
