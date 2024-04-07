@@ -66,7 +66,7 @@ ifExprP = rword "if" *> do
 
 matchExprP :: Parser Expr
 matchExprP = MatchExpr
-  <$> (rword "match" *> bindP)
+  <$> (rword "match" *> chainExprP)
   <*> (M.fromList <$> braces fsc (caseP `sepBy1` (comma <* fsc)))
   where
     caseP = pair <$> bindP <*> (L.symbol fsc "->" *> topLevelExprP)

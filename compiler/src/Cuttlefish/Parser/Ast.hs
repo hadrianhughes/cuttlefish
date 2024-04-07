@@ -32,7 +32,7 @@ data Expr = VarRef       Text
           | ListExpr     [Expr]
           | TupleExpr    [Expr]
           | StructExpr   (M.Map Text Expr)
-          | MatchExpr    Bind (M.Map Bind Expr)
+          | MatchExpr    Expr (M.Map Bind Expr)
           | BlockExpr    [Statement]
           | IntLit       Int
           | CharLit      Char
