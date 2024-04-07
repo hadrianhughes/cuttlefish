@@ -74,6 +74,10 @@ checkExpr = \case
     elmnts' <- mapM checkExpr elmnts
     -- TODO: Check element types match list type and return correct type
     pure (ListType $ PrimType Unit, SListExpr elmnts')
+  TupleExpr items -> do
+    items' <- mapM checkExpr items
+    -- TODO: Check item types match tuple type and return correct type
+    pure (TupleType [], STupleExpr items')
   where
     checkIfCond :: (Expr, Expr) -> Semant (SExpr, SExpr)
     checkIfCond (cond, expr) = do
