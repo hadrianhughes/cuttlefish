@@ -62,6 +62,14 @@ checkExpr = \case
         pure (rtnType, SFuncCall fn' args')
       -- TODO: Implement correct function type in error
       _ -> throwError $ TypeError (PrimType Unit) fnType fnExpr
+  EffectRun expr -> do
+    expr'@(exprType, exprVal) <- checkExpr expr
+    case exprType of
+      EffectType rtnType -> do
+        -- TODO: Check effect rtnType is correct
+        pure expr'
+      -- TODO: Implement correct effect type in error
+      _ -> throwError $ TypeError (EffectType $ PrimType Unit) exprType exprVal
   where
     checkIfCond :: (Expr, Expr) -> Semant (SExpr, SExpr)
     checkIfCond (cond, expr) = do
