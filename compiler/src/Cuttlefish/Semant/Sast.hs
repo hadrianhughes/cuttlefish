@@ -26,7 +26,7 @@ data SExpr' = SVarRef       Text
             | SEffectRun    SExpr
             | SListExpr     [SExpr]
             | STupleExpr    [SExpr]
-            | SStructExpr   Text (M.Map Text SExpr)
+            | SStructExpr   (M.Map Text SExpr)
             | SMatchExpr    Bind
             | SBlockExpr    [SStatement]
             | SIntLit       Int

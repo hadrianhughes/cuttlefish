@@ -78,6 +78,10 @@ checkExpr = \case
     items' <- traverse checkExpr items
     -- TODO: Check item types match tuple type and return correct type
     pure (TupleType [], STupleExpr items')
+  StructExpr props -> do
+    props' <- traverse checkExpr props
+    -- TODO: Check struct properties match type
+    pure (StructType M.empty, SStructExpr props')
   where
     checkIfCond :: (Expr, Expr) -> Semant (SExpr, SExpr)
     checkIfCond (cond, expr) = do
