@@ -23,8 +23,8 @@ checkProgram prog = evalState (runExceptT (checkProgram' prog)) env
 
     checkProgram' :: Program -> Semant SProgram
     checkProgram' prog = do
-      types   <- mapM checkTypeDefn   $ AST.pTypes prog
-      classes <- mapM checkClassDefn  $ AST.pClasses prog
-      members <- mapM checkMemberDefn $ AST.pMembers prog
-      funcs   <- mapM checkFuncDefn   $ AST.pFuncs prog
-      return $ SProgram types [] funcs classes members
+      types   <- traverse checkTypeDefn   $ AST.pTypes prog
+      classes <- traverse checkClassDefn  $ AST.pClasses prog
+      members <- traverse checkMemberDefn $ AST.pMembers prog
+      funcs   <- traverse checkFuncDefn   $ AST.pFuncs prog
+      pure $ SProgram types [] funcs classes members

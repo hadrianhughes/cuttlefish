@@ -11,26 +11,28 @@ import qualified Data.Map               as M
 convertTypeExpr :: TypeExpr -> Semant Type
 convertTypeExpr expr =
   case expr of
-    (FuncTypeExpr e1 e2)     -> FuncType      <$> (convertTypeExpr e1) <*> (convertTypeExpr e2)
-    (ListTypeExpr e)         -> ListType      <$> (convertTypeExpr e)
-    (TupleTypeExpr es)       -> TupleType     <$> (mapM convertTypeExpr es)
-    (StructTypeExpr fields)  -> StructType    <$> mapM convertTypeExpr fields
-    (EnumTypeExpr cases)     -> EnumType      <$> mapM (mapM convertTypeExpr) cases
+    (FuncTypeExpr e1 e2)     -> FuncType      <$> convertTypeExpr e1 <*> convertTypeExpr e2
+    (ListTypeExpr e)         -> ListType      <$> convertTypeExpr e
+    (TupleTypeExpr es)       -> TupleType     <$> traverse convertTypeExpr es
+    (StructTypeExpr fields)  -> StructType    <$> traverse convertTypeExpr fields
+    (EnumTypeExpr cases)     -> EnumType      <$> traverse (traverse convertTypeExpr) cases
     (EffectTypeExpr e)       -> EffectType    <$> convertTypeExpr e
-    (GenericTypeExpr n args) -> GenericType n <$> mapM convertTypeExpr args
-    (PrimTypeExpr p)         -> return $ PrimType p
-    (PlaceholderExpr name)   -> return $ Placeholder name
+    (GenericTypeExpr n args) -> GenericType n <$> traverse convertTypeExpr args
+    (PrimTypeExpr p)         -> pure $ PrimType p
+    (PlaceholderExpr name)   -> pure $ Placeholder name
 
 checkTypeDefn :: TypeDefn -> Semant STypeDefn
 checkTypeDefn defn = do
   -- Check for duplicate definition
   defns <- gets typeDefns
   let name = AST.typeName defn
-  when (M.member name defns) $ throwError (DuplicateDefn name DTypeDefn)
+  when (M.member name defns)
+    $ throwError
+    $ DuplicateDefn name DTypeDefn
 
   type' <- convertTypeExpr $ AST.typeExpr defn
   let defn' = STypeDefn name (AST.typeConstraints defn) type'
 
   modify $ \env -> env { typeDefns = M.insert name defn' defns }
 
-  return defn'
+  pure defn'

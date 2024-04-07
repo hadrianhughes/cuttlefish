@@ -32,7 +32,7 @@ chainExprP :: Parser Expr
 chainExprP = do
   start <- try exprP
   terms <- many term
-  return $ foldl chainAcc start terms
+  pure $ foldl chainAcc start terms
   where
     term :: Parser ChainTerm
     term = StructTerm   <$> (dot *> identifier)
@@ -43,14 +43,14 @@ operatorP :: Parser Expr
 operatorP = do
   start <- try chainExprP <|> exprP
   terms <- many $ BinopTerm <$> binop <*> (try blockExprP <|> try chainExprP <|> exprP)
-  return $ foldr (\(BinopTerm op arg2) expr -> FuncCall (VarRef op) [expr, arg2]) start terms
+  pure $ foldr (\(BinopTerm op arg2) expr -> FuncCall (VarRef op) [expr, arg2]) start terms
 
 literalP :: Parser Expr
 literalP = try (FloatLit <$> float)
        <|> IntLit   <$> int
        <|> CharLit  <$> squotes (satisfy (`notElem` ['\\', '\'']) <|> single '\\')
        <|> StrLit   <$> dquotes (takeWhileP Nothing (/= '"'))
-       <|> (L.symbol hsc "()" *> return UnitLit)
+       <|> (L.symbol hsc "()" *> pure UnitLit)
 
 ifExprP :: Parser Expr
 ifExprP = rword "if" *> do
@@ -58,7 +58,7 @@ ifExprP = rword "if" *> do
   then1     <- rword "then" *> nestedExpr <* fsc
   rest      <- many (try elifExpr)
   elseBlock <- rword "else" *> nestedExpr
-  return $ IfExpr (M.fromList $ (cond1, then1) : rest) elseBlock
+  pure $ IfExpr (M.fromList $ (cond1, then1) : rest) elseBlock
   where
     condExpr   = try operatorP <|> try chainExprP <|> exprP <* fsc
     nestedExpr = try blockExprP <|> try operatorP <|> try chainExprP <|> exprP
@@ -147,7 +147,7 @@ funcDefnP = parse <* fsc
           funcType  = foldr argFold rtnType' args
           typeVars' = maybeList typeVars
 
-      return $ FuncDefn
+      pure $ FuncDefn
         name
         funcType
         typeVars'
@@ -167,7 +167,7 @@ funcDefnP' = parse <* fsc
 
       let typeVars' = maybeList typeVars
 
-      return $ FuncDefn
+      pure $ FuncDefn
         name
         funcType
         typeVars'
@@ -186,7 +186,7 @@ effectDefnP = do
       funcType  = foldr argFold (EffectTypeExpr rtnType') args
       typeVars' = maybeList typeVars
 
-  return $ FuncDefn
+  pure $ FuncDefn
     name
     funcType
     typeVars'
@@ -201,7 +201,7 @@ ifStmtP = rword "if" *> do
   then1     <- blockExprP
   rest      <- many (try elifExpr)
   elseBlock <- optional (pair <$> rword "else" *> blockExprP)
-  return $ IfStmt (M.fromList $ (cond1, then1) : rest) elseBlock
+  pure $ IfStmt (M.fromList $ (cond1, then1) : rest) elseBlock
   where
     condExpr = try operatorP <|> try chainExprP <|> exprP
     elifExpr = pair <$> (rword "else" *> rword "if" *> condExpr) <*> blockExprP
@@ -252,21 +252,21 @@ classDefnP = ClassDefn
       (name, args, rtn) <- sig
       let args' = if null args then [PrimTypeExpr Unit] else args
           typ   = foldr FuncTypeExpr rtn args'
-      return (name, typ)
+      pure (name, typ)
 
     effectSig :: Parser (Text, TypeExpr)
     effectSig = rword "effect" *> do
       (name, args, rtn) <- sig
       let args' = if null args then [PrimTypeExpr Unit] else args
           typ   = foldr FuncTypeExpr (EffectTypeExpr rtn) args'
-      return (name, typ)
+      pure (name, typ)
 
     sig :: Parser (Text, [TypeExpr], TypeExpr)
     sig = do
       name <- identifier
       args <- parens fsc (openTypeExprP `sepBy` (comma <* fsc))
       rtn  <- L.symbol hsc "->" *> closedTypeExprP
-      return (name, args, rtn)
+      pure (name, args, rtn)
 
 -- Membership
 
@@ -282,7 +282,7 @@ memberDefnP = MembershipDefn
       name <- identifier
       args <- parens fsc (bindP `sepBy` (comma <* fsc))
       body <- (L.symbol fsc "=" *> topLevelExprP) <|> blockExprP
-      return $ MembershipImpl
+      pure $ MembershipImpl
         name
         args
         body

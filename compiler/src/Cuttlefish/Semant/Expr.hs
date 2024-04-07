@@ -37,11 +37,11 @@ checkExpr = \case
     case strType of
       StructType st ->
         case M.lookup field st of
-          Just t  -> return (t, SStructAccess struct' field)
+          Just t  -> pure (t, SStructAccess struct' field)
           Nothing -> throwError $ UndefinedField struct' field
       _ -> throwError $ TypeError (StructType M.empty) strType strExpr
   IfExpr conds elseExpr -> do
-    conds' <- mapM checkIfCond $ M.toList conds
+    conds' <- traverse checkIfCond $ M.toList conds
     -- TODO: Check all branches return the right type
 
     elseExpr' <- checkExpr elseExpr
@@ -56,8 +56,8 @@ checkExpr = \case
           $ throwError
           $ IncorrectArity (ArityFuncCall fn')
 
-        args' <- mapM checkExpr args
-        mapM (\(t, e) -> assertType t e) (zip argTypes args')
+        args' <- traverse checkExpr args
+        traverse (\(t, e) -> assertType t e) $ zip argTypes args'
 
         pure (rtnType, SFuncCall fn' args')
       -- TODO: Implement correct function type in error
@@ -71,11 +71,11 @@ checkExpr = \case
       -- TODO: Implement correct effect type in error
       _ -> throwError $ TypeError (EffectType $ PrimType Unit) exprType exprVal
   ListExpr elmnts -> do
-    elmnts' <- mapM checkExpr elmnts
+    elmnts' <- traverse checkExpr elmnts
     -- TODO: Check element types match list type and return correct type
     pure (ListType $ PrimType Unit, SListExpr elmnts')
   TupleExpr items -> do
-    items' <- mapM checkExpr items
+    items' <- traverse checkExpr items
     -- TODO: Check item types match tuple type and return correct type
     pure (TupleType [], STupleExpr items')
   where

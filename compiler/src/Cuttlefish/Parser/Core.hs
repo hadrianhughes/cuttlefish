@@ -92,7 +92,7 @@ rws =
 checkIsRW :: Text -> Parser Text
 checkIsRW w = if w `elem` rws
   then fail $ "keyword " <> show w <> " cannot be an identifier"
-  else return w
+  else pure w
 
 binopChars :: [Char]
 binopChars = "&|=!><+-*/^"

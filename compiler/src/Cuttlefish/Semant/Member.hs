@@ -23,8 +23,8 @@ checkMemberDefn defn = do
       let typeName = AST.membType defn
       unless (M.member typeName types) $ throwError (UndefinedType typeName $ UTMemberDefn defn)
 
-      defns' <- mapM (checkImpl cd) (AST.membDefns defn)
-      return $ SMembershipDefn className typeName defns'
+      defns' <- traverse (checkImpl cd) (AST.membDefns defn)
+      pure $ SMembershipDefn className typeName defns'
   where
     checkImpl :: SClassDefn -> MembershipImpl -> Semant SFuncDefn
     checkImpl classDefn impl = do
@@ -43,6 +43,6 @@ checkMemberDefn defn = do
               argc        = length $ implArgs impl
           when (argc /= arity) $ throwError (IncorrectArity $ ArityMember impl t)
 
-          return $ SFuncDefn name t [] (implArgs impl) (PrimType Unit, SUnitLit)
+          pure $ SFuncDefn name t [] (implArgs impl) (PrimType Unit, SUnitLit)
           -- TODO: Get this working (relies on SExpr)
           --return $ SFuncDefn name t [] (implArgs impl) (implBody impl)

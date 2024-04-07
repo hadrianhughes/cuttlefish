@@ -17,9 +17,9 @@ checkClassDefn defn = do
   let name = AST.className defn
   when (M.member name defns) $ throwError (DuplicateDefn name DClassDefn)
 
-  sigs' <- mapM convertTypeExpr $ AST.classSigs defn
+  sigs' <- traverse convertTypeExpr $ AST.classSigs defn
   let defn' = SClassDefn name (AST.classVar defn) sigs'
 
   modify $ \env -> env { classDefns = M.insert name defn' defns }
 
-  return defn'
+  pure defn'

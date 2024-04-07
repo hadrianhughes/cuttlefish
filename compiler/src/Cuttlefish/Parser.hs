@@ -42,7 +42,7 @@ memberDefns r = [m | RMemberDefn m <- r]
 programP :: Parser Program
 programP = between fsc eof $ do
   roots <- programRootsP
-  return $ Program
+  pure $ Program
     (typeDefns   roots)
     (constDefns  roots)
     (funcDefns   roots)
