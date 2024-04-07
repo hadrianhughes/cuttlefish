@@ -21,7 +21,7 @@ typeConstraintP = try (TypeConstraint <$> typeIdentifier <*> identifier)
 dataConstructorP :: Parser (Text, [TypeExpr])
 dataConstructorP = pair
   <$> typeIdentifier
-  <*> (maybeList <$> optional (parens hsc $ openTypeExprP `sepBy1` comma)) <* fsc
+  <*> (unmaybeList <$> optional (parens hsc $ openTypeExprP `sepBy1` comma)) <* fsc
 
 closedTypeExprP :: Parser TypeExpr
 closedTypeExprP = try (ListTypeExpr    <$> brackets hsc openTypeExprP)
@@ -43,5 +43,5 @@ typeDefnP :: Parser TypeDefn
 typeDefnP = parse <* fsc
   where
     parse = TypeDefn <$> (rword "type" *> typeIdentifier)
-        <*> (maybeList <$> optional (angles hsc (typeConstraintP `sepBy1` comma)))
+        <*> (unmaybeList <$> optional (angles hsc (typeConstraintP `sepBy1` comma)))
         <*> (L.symbol fsc "=" *> openTypeExprP)

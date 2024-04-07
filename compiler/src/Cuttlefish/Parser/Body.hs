@@ -114,7 +114,7 @@ bindP :: Parser Bind
 bindP = try (TupleBind <$> parens hsc (bindP `sepBy1` comma))
     <|> ConstructorBind
       <$> typeIdentifier
-      <*> (maybeList <$> optional (parens hsc (identifier `sepBy1` comma)))
+      <*> (unmaybeList <$> optional (parens hsc (identifier `sepBy1` comma)))
     <|> SimpleBind <$> identifier
 
 constDefnP :: Parser ConstDefn
@@ -145,7 +145,7 @@ funcDefnP = parse <* fsc
 
       let rtnType'  = fromMaybe (PrimTypeExpr Unit) rtnType
           funcType  = foldr argFold rtnType' args
-          typeVars' = maybeList typeVars
+          typeVars' = unmaybeList typeVars
 
       pure $ FuncDefn
         name
@@ -165,7 +165,7 @@ funcDefnP' = parse <* fsc
       args             <- parens fsc (bindP `sepBy` (comma <* fsc))
       body             <- (L.symbol hsc "=" *> topLevelExprP) <|> blockExprP
 
-      let typeVars' = maybeList typeVars
+      let typeVars' = unmaybeList typeVars
 
       pure $ FuncDefn
         name
@@ -184,7 +184,7 @@ effectDefnP = do
 
   let rtnType'  = fromMaybe (PrimTypeExpr Unit) rtnType
       funcType  = foldr argFold (EffectTypeExpr rtnType') args
-      typeVars' = maybeList typeVars
+      typeVars' = unmaybeList typeVars
 
   pure $ FuncDefn
     name
