@@ -45,7 +45,7 @@ checkFuncDefn defn = do
     _ -> throwInvalidFuncType funcType
 
   let (argTypes, _) = flatFuncType funcType'
-  when (length argTypes /= length args) $ throwError (IncorrectArity $ ArityFunc defn)
+  when (length argTypes /= length args) $ throwError (IncorrectArity $ ArityFuncDefn defn)
 
   return $ SFuncDefn
     name

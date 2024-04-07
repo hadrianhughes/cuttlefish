@@ -1,5 +1,6 @@
 module Cuttlefish.Semant.Expr where
 
+import Control.Applicative
 import Control.Monad.Except
 import Control.Monad.State
 import Cuttlefish.Parser.Ast
@@ -46,6 +47,21 @@ checkExpr = \case
     elseExpr' <- checkExpr elseExpr
     -- TODO: Replace unit with correct type
     pure (PrimType Unit, SIfExpr (M.fromList conds') elseExpr')
+  FuncCall fn args -> do
+    fn'@(fnType, fnExpr) <- checkExpr fn
+    case fnType of
+      t@(FuncType a b) -> do
+        let (argTypes, rtnType) = flatFuncType t
+        when (length args /= length argTypes)
+          $ throwError
+          $ IncorrectArity (ArityFuncCall fn')
+
+        args' <- mapM checkExpr args
+        mapM (\(t, e) -> assertType t e) (zip argTypes args')
+
+        pure (rtnType, SFuncCall fn' args')
+      -- TODO: Implement correct function type in error
+      _ -> throwError $ TypeError (PrimType Unit) fnType fnExpr
   where
     checkIfCond :: (Expr, Expr) -> Semant (SExpr, SExpr)
     checkIfCond (cond, expr) = do
@@ -61,3 +77,9 @@ checkExpr = \case
           -- TODO: Figure out correct expected type
           expr' <- checkExpr expr
           pure (cond', expr')
+
+assertType :: Type -> SExpr -> Semant ()
+assertType t (et, expr) =
+  if t /= et
+  then throwError $ TypeError t et expr
+  else pure ()

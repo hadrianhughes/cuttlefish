@@ -15,8 +15,10 @@ data UndefinedClassKind = UCMemberDefn MembershipDefn | UCConstraint TypeConstra
 data UndefinedTypeKind  = UTExpr       Expr
                         | UTMemberDefn MembershipDefn
                         | UTFuncDefn   FuncDefn deriving Show
-data ArityLoc           = ArityMember MembershipImpl Type
-                        | ArityFunc   FuncDefn deriving Show
+data ArityLoc           = ArityMember   MembershipImpl Type
+                        | ArityFuncDefn FuncDefn
+                        | ArityFuncCall SExpr
+                        deriving Show
 
 data SemantError =
     IllegalBinding  Name IllegalBindReason
