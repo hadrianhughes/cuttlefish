@@ -25,6 +25,7 @@ executable cuttlefish-compiler
 library
   exposed-modules:
     Cuttlefish
+    Cuttlefish.NewParser.Core
     Cuttlefish.Parser
     Cuttlefish.Parser.Ast
     Cuttlefish.Parser.Body
