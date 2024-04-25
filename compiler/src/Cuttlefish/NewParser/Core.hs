@@ -34,3 +34,6 @@ charP c = Parser $ \input ->
   case input of
     (x:xs) | x == c -> Just (x, xs)
     _               -> Nothing
+
+symbolP :: String -> Parser String
+symbolP s = sequenceA $ map charP s
