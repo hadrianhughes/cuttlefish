@@ -37,3 +37,15 @@ charP c = Parser $ \input ->
 
 symbolP :: String -> Parser String
 symbolP s = sequenceA $ map charP s
+
+charInP :: String -> Parser Char
+charInP cs = Parser $ \input ->
+  case input of
+    (x:xs) | x `elem` cs -> Just (x, xs)
+    _                    -> Nothing
+
+sc :: Parser ()
+sc = void $ many (charInP " \t\n")
+
+sc' :: Parser ()
+sc' = void $ many (charInP " \t")
