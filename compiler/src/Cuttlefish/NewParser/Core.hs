@@ -68,3 +68,6 @@ floatP = mkFloat <$> numP <*> (charP '.' *> numP)
     numP = some $ charInP "0123456789"
     mkFloat :: String -> String -> Double
     mkFloat l r = read $ l <> "." <> r
+
+between :: Parser open -> Parser close -> Parser a -> Parser a
+between o c p = o *> p <* c
