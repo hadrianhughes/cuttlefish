@@ -1,4 +1,4 @@
-module Cuttlefish.NewParser.Core where
+module Cuttlefish.Parser.Core where
 
 import Control.Applicative
 import Data.Functor
@@ -36,7 +36,7 @@ char c = Parser $ \input ->
     _               -> Nothing
 
 symbol :: String -> Parser String
-symbol s = sequenceA $ map charP s
+symbol s = sequenceA $ map char s
 
 charIf :: (Char -> Bool) -> Parser Char
 charIf pred = Parser $ \input ->
@@ -45,50 +45,74 @@ charIf pred = Parser $ \input ->
     _               -> Nothing
 
 oneOf :: String -> Parser Char
-oneOf cs = charIfP (`elem` cs)
+oneOf cs = charIf (`elem` cs)
 
 charNotIn :: String -> Parser Char
-charNotIn cs = charIfP (not . (`elem` cs))
+charNotIn cs = charIf (not . (`elem` cs))
 
 lineComment :: Parser ()
-lineComment = void $ symbolP "//" *> many (charNotInP "\n")
+lineComment = void $ symbol "//" *> many (charNotIn "\n")
 
 sc :: Parser ()
-sc = void $ many (lineComment <|> (void $ oneOfP " \t\n"))
+sc = void $ many (lineComment <|> (void $ oneOf " \t\n"))
 
 sc' :: Parser ()
-sc' = void $ many (lineComment <|> (void $ oneOfP " \t"))
+sc' = void $ many (lineComment <|> (void $ oneOf " \t"))
 
 int :: Parser Int
-int = read <$> (some digitP)
+int = read <$> (some digit)
 
 digit :: Parser Char
-digit = oneOfP "0123456789"
+digit = oneOf "0123456789"
 
 float :: Parser Double
-float = mkFloat <$> numP <*> (charP '.' *> numP)
+float = mkFloat <$> num <*> (char '.' *> num)
   where
-    numP = some digitP
+    num = some digit
     mkFloat :: String -> String -> Double
     mkFloat l r = read $ l <> "." <> r
 
 upperChar :: Parser Char
-upperChar = oneOfP "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+upperChar = oneOf "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 lowerChar :: Parser Char
-lowerChar = oneOfP "abcdefghijklmnopqrstuvwxyz"
+lowerChar = oneOf "abcdefghijklmnopqrstuvwxyz"
 
 letterChar :: Parser Char
-letterChar = upperCharP <|> lowerCharP
+letterChar = upperChar <|> lowerChar
 
 alphaNumChar :: Parser Char
-alphaNumChar = letterCharP <|> digitP
+alphaNumChar = letterChar <|> digit
 
-between :: Parser open -> Parser close -> Parser a -> Parser a
-between o c p = o *> p <* c
+anyChar :: Parser Char
+anyChar = charIf (const True)
 
 sepBy :: Parser a -> Parser sep -> Parser [a]
 sepBy p sep = sepBy' p sep <|> pure []
 
 sepBy' :: Parser a -> Parser sep -> Parser [a]
 sepBy' p sep = (:) <$> p <*> many (sep *> p)
+
+lookAhead :: Parser a -> Parser a
+lookAhead p = Parser $ \input ->
+  case consume input of
+    Nothing -> Nothing
+    Just x  -> Just (x, input)
+  where
+    consume [] = Nothing
+    consume s =
+      case parse p s of
+        Nothing -> consume $ tail s
+        Just (x, _) -> Just x
+
+notFollowedBy :: Parser a -> Parser ()
+notFollowedBy p = Parser $ \input ->
+  case consume input of
+    Nothing -> Just ((), input)
+    Just _  -> Nothing
+  where
+    consume [] = Nothing
+    consume s =
+      case parse p s of
+        Nothing     -> consume $ tail s
+        Just (x, _) -> Just x

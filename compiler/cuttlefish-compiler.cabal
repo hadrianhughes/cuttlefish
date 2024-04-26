@@ -25,11 +25,11 @@ executable cuttlefish-compiler
 library
   exposed-modules:
     Cuttlefish
-    Cuttlefish.NewParser.Core
     Cuttlefish.Parser
     Cuttlefish.Parser.Ast
     Cuttlefish.Parser.Body
     Cuttlefish.Parser.Core
+    Cuttlefish.Parser.Lexer
     Cuttlefish.Parser.Types
     Cuttlefish.Parser.Utils
     Cuttlefish.Semant
@@ -52,5 +52,6 @@ library
     , string-conversions
     , containers
     , mtl
+    , parser-combinators
   default-extensions: OverloadedStrings, LambdaCase
   default-language: Haskell2010
