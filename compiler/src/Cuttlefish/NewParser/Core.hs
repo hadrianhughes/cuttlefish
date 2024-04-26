@@ -60,14 +60,29 @@ sc' :: Parser ()
 sc' = void $ many (lineComment <|> (void $ charInP " \t"))
 
 intP :: Parser Int
-intP = read <$> (some $ charInP "0123456789")
+intP = read <$> (some digitP)
+
+digitP :: Parser Char
+digitP = charInP "0123456789"
 
 floatP :: Parser Double
 floatP = mkFloat <$> numP <*> (charP '.' *> numP)
   where
-    numP = some $ charInP "0123456789"
+    numP = some digitP
     mkFloat :: String -> String -> Double
     mkFloat l r = read $ l <> "." <> r
+
+upperCharP :: Parser Char
+upperCharP = charInP "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+lowerCharP :: Parser Char
+lowerCharP = charInP "abcdefghijklmnopqrstuvwxyz"
+
+letterCharP :: Parser Char
+letterCharP = upperCharP <|> lowerCharP
+
+alphaNumChar :: Parser Char
+alphaNumChar = letterCharP <|> digitP
 
 between :: Parser open -> Parser close -> Parser a -> Parser a
 between o c p = o *> p <* c
