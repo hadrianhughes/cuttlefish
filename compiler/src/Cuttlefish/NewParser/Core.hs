@@ -58,3 +58,13 @@ sc = void $ many (lineComment <|> (void $ charInP " \t\n"))
 
 sc' :: Parser ()
 sc' = void $ many (lineComment <|> (void $ charInP " \t"))
+
+intP :: Parser Int
+intP = read <$> (some $ charInP "0123456789")
+
+floatP :: Parser Double
+floatP = mkFloat <$> numP <*> (charP '.' *> numP)
+  where
+    numP = some $ charInP "0123456789"
+    mkFloat :: String -> String -> Double
+    mkFloat l r = read $ l <> "." <> r
