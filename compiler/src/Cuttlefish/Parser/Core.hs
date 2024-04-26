@@ -1,6 +1,7 @@
 module Cuttlefish.Parser.Core where
 
 import Control.Applicative
+import Control.Monad.Plus
 import Data.Functor
 
 newtype Parser a = Parser { parse :: String -> Maybe (a, String) }
@@ -27,6 +28,18 @@ instance Alternative Parser where
     case p1 input of
       Nothing -> p2 input
       result  -> result
+
+instance Monad Parser where
+  (Parser p) >>= f = Parser $ \input ->
+    case p input of
+      Nothing -> Nothing
+      Just (x, input') -> parse (f x) input'
+
+instance MonadPlus Parser where
+  mzero = empty
+
+instance MonadFail Parser where
+  fail _ = mzero
 
 
 char :: Char -> Parser Char
