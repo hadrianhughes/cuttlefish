@@ -71,3 +71,9 @@ floatP = mkFloat <$> numP <*> (charP '.' *> numP)
 
 between :: Parser open -> Parser close -> Parser a -> Parser a
 between o c p = o *> p <* c
+
+sepBy :: Parser a -> Parser sep -> Parser [a]
+sepBy p sep = sepBy' p sep <|> pure []
+
+sepBy' :: Parser a -> Parser sep -> Parser [a]
+sepBy' p sep = (:) <$> p <*> many (sep *> p)
