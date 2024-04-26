@@ -100,12 +100,6 @@ alphaNumChar = letterChar <|> digit
 anyChar :: Parser Char
 anyChar = charIf (const True)
 
-sepBy :: Parser a -> Parser sep -> Parser [a]
-sepBy p sep = sepBy' p sep <|> pure []
-
-sepBy' :: Parser a -> Parser sep -> Parser [a]
-sepBy' p sep = (:) <$> p <*> many (sep *> p)
-
 lookAhead :: Parser a -> Parser a
 lookAhead p = Parser $ \input ->
   case consume input of
