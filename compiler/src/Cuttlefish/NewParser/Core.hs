@@ -44,8 +44,8 @@ charIfP pred = Parser $ \input ->
     (x:xs) | pred x -> Just (x, xs)
     _               -> Nothing
 
-charInP :: String -> Parser Char
-charInP cs = charIfP (`elem` cs)
+oneOfP :: String -> Parser Char
+oneOfP cs = charIfP (`elem` cs)
 
 charNotInP :: String -> Parser Char
 charNotInP cs = charIfP (not . (`elem` cs))
@@ -54,16 +54,16 @@ lineComment :: Parser ()
 lineComment = void $ symbolP "//" *> many (charNotInP "\n")
 
 sc :: Parser ()
-sc = void $ many (lineComment <|> (void $ charInP " \t\n"))
+sc = void $ many (lineComment <|> (void $ oneOfP " \t\n"))
 
 sc' :: Parser ()
-sc' = void $ many (lineComment <|> (void $ charInP " \t"))
+sc' = void $ many (lineComment <|> (void $ oneOfP " \t"))
 
 intP :: Parser Int
 intP = read <$> (some digitP)
 
 digitP :: Parser Char
-digitP = charInP "0123456789"
+digitP = oneOfP "0123456789"
 
 floatP :: Parser Double
 floatP = mkFloat <$> numP <*> (charP '.' *> numP)
@@ -73,10 +73,10 @@ floatP = mkFloat <$> numP <*> (charP '.' *> numP)
     mkFloat l r = read $ l <> "." <> r
 
 upperCharP :: Parser Char
-upperCharP = charInP "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+upperCharP = oneOfP "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 lowerCharP :: Parser Char
-lowerCharP = charInP "abcdefghijklmnopqrstuvwxyz"
+lowerCharP = oneOfP "abcdefghijklmnopqrstuvwxyz"
 
 letterCharP :: Parser Char
 letterCharP = upperCharP <|> lowerCharP
