@@ -38,14 +38,23 @@ charP c = Parser $ \input ->
 symbolP :: String -> Parser String
 symbolP s = sequenceA $ map charP s
 
-charInP :: String -> Parser Char
-charInP cs = Parser $ \input ->
+charIfP :: (Char -> Bool) -> Parser Char
+charIfP pred = Parser $ \input ->
   case input of
-    (x:xs) | x `elem` cs -> Just (x, xs)
-    _                    -> Nothing
+    (x:xs) | pred x -> Just (x, xs)
+    _               -> Nothing
+
+charInP :: String -> Parser Char
+charInP cs = charIfP (`elem` cs)
+
+charNotInP :: String -> Parser Char
+charNotInP cs = charIfP (not . (`elem` cs))
+
+lineComment :: Parser ()
+lineComment = void $ symbolP "//" *> many (charNotInP "\n")
 
 sc :: Parser ()
-sc = void $ many (charInP " \t\n")
+sc = void $ many (lineComment <|> (void $ charInP " \t\n"))
 
 sc' :: Parser ()
-sc' = void $ many (charInP " \t")
+sc' = void $ many (lineComment <|> (void $ charInP " \t"))
