@@ -48,8 +48,8 @@ instance MonadFail Parser where
   fail _ = mzero
 
 
-symbol :: String -> Parser String
-symbol s = sequenceA $ map char s
+symbol :: Parser () -> String -> Parser String
+symbol sc' s = sc' *> (sequenceA $ map char s)
 
 satisfy :: (Char -> Bool) -> Parser Char
 satisfy pred = Parser $ \input ->
@@ -68,14 +68,11 @@ oneOf cs = satisfy (`elem` cs)
 notOneOf :: String -> Parser Char
 notOneOf cs = satisfy (not . (`elem` cs))
 
-lineComment :: Parser ()
-lineComment = void $ symbol "//" *> many (notOneOf "\n")
+sc :: Parser () -> Parser ()
+sc comm = void $ many (comm <|> (void $ oneOf " \t\n"))
 
-sc :: Parser ()
-sc = void $ many (lineComment <|> (void $ oneOf " \t\n"))
-
-sc' :: Parser ()
-sc' = void $ many (lineComment <|> (void $ oneOf " \t"))
+sc' :: Parser () -> Parser ()
+sc' comm = void $ many (comm <|> (void $ oneOf " \t"))
 
 int :: Parser Int
 int = read <$> (some digit)
