@@ -19,17 +19,27 @@ symbol = P.symbol sc'
 lineComment :: Parser ()
 lineComment = void $ symbol "//" *> many (P.notOneOf "\n")
 
+int = P.int
+
+float = P.float
+
 parens :: Parser a -> Parser a
 parens = between (symbol "(") (symbol ")")
 
+parens' :: Parser a -> Parser a
+parens' = between (P.symbol sc "(") (P.symbol sc ")")
+
 brackets :: Parser a -> Parser a
 brackets = between (symbol "[") (symbol "]")
+
+brackets' :: Parser a -> Parser a
+brackets' = between (P.symbol sc "[") (P.symbol sc "]")
 
 braces :: Parser a -> Parser a
 braces = between (symbol "{") (symbol "}")
 
 braces' :: Parser a -> Parser a
-braces' = between (sc *> symbol "{") (sc *> symbol "}")
+braces' = between (P.symbol sc "{") (P.symbol sc "}")
 
 manyInBraces :: Parser a -> Parser [a]
 manyInBraces p = braces (manyTill (p <* sc) (P.lookAhead $ P.char '}'))
