@@ -2,9 +2,8 @@ module Cuttlefish.Semant.Error where
 
 import Cuttlefish.Parser.Ast
 import Cuttlefish.Semant.Sast
-import Data.Text (Text)
 
-type Name = Text
+type Name = String
 
 data IllegalBindReason  = IBDuplicate Bind | IBUnit deriving Show
 data DefnKind           = DConstDefn | DFuncDefn | DTypeDefn | DClassDefn deriving Show
@@ -31,6 +30,6 @@ data SemantError =
   | InvalidFuncType Type FuncDefn
   | TypeError       { exp :: Type, act :: Type, loc :: SExpr' }
   | UndefinedField  SExpr Name
-  | UndefinedVar    Text Expr
+  | UndefinedVar    Name Expr
   | PatternMismatch Bind SExpr
   deriving Show

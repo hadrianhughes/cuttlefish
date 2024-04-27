@@ -9,7 +9,6 @@ import           Cuttlefish.Semant.Error
 import           Cuttlefish.Semant.Sast
 import           Cuttlefish.Semant.Types
 import qualified Data.Map                as M
-import           Data.Text (Text)
 
 checkFuncDefn :: FuncDefn -> Semant SFuncDefn
 checkFuncDefn defn = do
@@ -62,11 +61,11 @@ checkFuncDefn defn = do
         (TupleBind bs)           -> forM_ bs (checkDupArg acc)
         (ConstructorBind _ vars) -> forM_ vars (forM_ acc . argError)
       pure (b:acc)
-    argError :: Text -> Bind -> Semant Bind
+    argError :: String -> Bind -> Semant Bind
     argError var bind = do
       when (bindHasVar var bind) $ throwError (IllegalBinding var $ IBDuplicate bind)
       pure bind
-    resolveExplicitType :: Text -> Semant Type
+    resolveExplicitType :: String -> Semant Type
     resolveExplicitType typeName = do
       types <- gets typeDefns
       case M.lookup typeName types of
