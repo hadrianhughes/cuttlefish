@@ -61,7 +61,10 @@ eof = Parser $ \input ->
     (x:_) -> Left (Unexpected x)
 
 symbol :: Parser () -> String -> Parser String
-symbol sc' s = sc' *> (sequenceA $ map char s)
+symbol sc' s = sc' *> symbol' s
+
+symbol' :: String -> Parser String
+symbol' s = sequenceA $ map char s
 
 satisfy :: (Char -> Bool) -> Parser Char
 satisfy pred = Parser $ \input ->

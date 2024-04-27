@@ -17,7 +17,7 @@ symbol :: String -> Parser String
 symbol = P.symbol sc'
 
 lineComment :: Parser ()
-lineComment = void $ symbol "//" *> many (P.notOneOf "\n")
+lineComment = void $ P.symbol' "//" *> many (P.notOneOf "\n")
 
 int = P.int
 
