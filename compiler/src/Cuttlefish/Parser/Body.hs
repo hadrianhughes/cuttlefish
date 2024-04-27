@@ -140,7 +140,7 @@ funcDefnP = parse <* fsc
       name     <- rword "func" *> identifier
       typeVars <- optional (angles hsc $ some typeConstraintP)
       args     <- parens fsc $ argP `sepBy` (comma <* fsc)
-      rtnType  <- optional openTypeExprP
+      rtnType  <- optional $ L.symbol hsc "->" *> openTypeExprP
       body     <- (L.symbol fsc "=" *> topLevelExprP) <|> blockExprP
 
       let rtnType'  = fromMaybe (PrimTypeExpr Unit) rtnType
