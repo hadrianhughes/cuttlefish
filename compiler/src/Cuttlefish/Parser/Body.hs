@@ -274,7 +274,7 @@ classDefnP = ClassDefn
 memberDefnP :: Parser MembershipDefn
 memberDefnP = MembershipDefn
   <$> (rword "member" *> typeIdentifier)
-  <*> typeIdentifier
+  <*> (rword "of" *> typeIdentifier)
   <*> manyInBraces impl
   where
     impl :: Parser MembershipImpl
