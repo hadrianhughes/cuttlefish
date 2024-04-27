@@ -83,6 +83,7 @@ rws =
   , "in"
   , "of"
   , "class"
+  , "extends"
   , "member"
   , "return"
   , "match"

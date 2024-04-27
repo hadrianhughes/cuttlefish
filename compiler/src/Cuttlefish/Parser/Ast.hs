@@ -51,9 +51,10 @@ data ConstDefn = ConstDefn { constName  :: Text
                            , constType  :: Maybe TypeExpr
                            , constValue :: Expr } deriving (Show, Eq)
 
-data ClassDefn = ClassDefn { className :: Text
-                           , classVar  :: Text
-                           , classSigs :: M.Map Text TypeExpr } deriving (Show, Eq)
+data ClassDefn = ClassDefn { className    :: Text
+                           , classVar     :: Text
+                           , classExtends :: Maybe Text
+                           , classSigs    :: M.Map Text TypeExpr } deriving (Show, Eq)
 
 data MembershipImpl = MembershipImpl { implName     :: Text
                                      , implArgs     :: [Bind]

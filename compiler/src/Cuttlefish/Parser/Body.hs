@@ -245,6 +245,7 @@ classDefnP :: Parser ClassDefn
 classDefnP = ClassDefn
   <$> (rword "class" *> typeIdentifier)
   <*> identifier
+  <*> optional (rword "extends" *> typeIdentifier)
   <*> (M.fromList <$> manyInBraces funcSig)
   where
     funcSig :: Parser (Text, TypeExpr)
