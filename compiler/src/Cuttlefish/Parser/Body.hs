@@ -49,7 +49,7 @@ literalP :: Parser Expr
 literalP = FloatLit <$> float
        <|> IntLit   <$> int
        <|> CharLit  <$> squotes (P.satisfy (`notElem` ['\\', '\'']) <|> P.char '\\')
-       <|> StrLit   <$> dquotes (takeWhileP Nothing (/= '"'))
+       <|> StrLit   <$> dquotes (many $ P.satisfy (/= '"'))
        <|> (symbol "()" *> pure UnitLit)
 
 ifExprP :: Parser Expr
