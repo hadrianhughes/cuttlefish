@@ -5,4 +5,5 @@ The language will not necessarily be called Cuttlefish--I just needed a repo nam
 ## TODO
 
 - Require that type parameters be declared in angle brackets
+- Add lambda expressions
 - Check that type constraints correspond to existing classes
