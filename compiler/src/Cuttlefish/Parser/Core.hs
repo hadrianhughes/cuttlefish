@@ -87,6 +87,7 @@ rws =
   , "member"
   , "return"
   , "match"
+  , "case"
   , "func"
   , "effect" ]
 

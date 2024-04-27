@@ -69,7 +69,7 @@ matchExprP = MatchExpr
   <$> (rword "match" *> chainExprP)
   <*> (M.fromList <$> braces fsc (caseP `sepBy1` (comma <* fsc)))
   where
-    caseP = pair <$> bindP <*> (L.symbol fsc "->" *> topLevelExprP)
+    caseP = pair <$> (rword "case" *> bindP) <*> (L.symbol fsc "->" *> topLevelExprP)
 
 listExprP :: Parser Expr
 listExprP = ListExpr <$> brackets fsc (topLevelExprP `sepBy` comma)
