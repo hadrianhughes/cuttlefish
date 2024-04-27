@@ -5,6 +5,7 @@ import           Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 import qualified Data.Map                   as M
 import           Data.Text (Text)
+import           Data.Void
 import           Cuttlefish.Parser.Ast
 import           Cuttlefish.Parser.Core
 import           Cuttlefish.Parser.Utils

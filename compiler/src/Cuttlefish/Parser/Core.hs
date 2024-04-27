@@ -3,37 +3,43 @@ module Cuttlefish.Parser.Core where
 import Control.Applicative
 import Control.Monad.Plus
 import Data.Functor
+import Data.Void
 
-newtype Parser a = Parser { parse :: String -> Maybe (a, String) }
+data ParseError = EndOfInput
+                | Unexpected Char
+                | Empty
+                deriving Show
+
+newtype Parser a = Parser { parse :: String -> Either ParseError (a, String) }
 
 instance Functor Parser where
   fmap f (Parser p) = Parser $ \input ->
     case p input of
-      Just (x, xs) -> Just (f x, xs)
-      Nothing      -> Nothing
+      Right (x, xs) -> Right (f x, xs)
+      Left es       -> Left es
 
 instance Applicative Parser where
-  pure x    = Parser $ \input -> Just (x, input)
+  pure x    = Parser $ \input -> Right (x, input)
   Parser p1 <*> Parser p2 = Parser $ \input ->
     case p1 input of
-      Nothing          -> Nothing
-      Just (f, input') ->
+      Left es           -> Left es
+      Right (f, input') ->
         case p2 input' of
-          Nothing           -> Nothing
-          Just (x, input'') -> Just (f x, input'')
+          Left es            -> Left es
+          Right (x, input'') -> Right (f x, input'')
 
 instance Alternative Parser where
-  empty = Parser $ \_ -> Nothing
+  empty = Parser $ \_ -> Left Empty
   Parser p1 <|> Parser p2 = Parser $ \input ->
     case p1 input of
-      Nothing -> p2 input
-      result  -> result
+      Left _ -> p2 input
+      result -> result
 
 instance Monad Parser where
   (Parser p) >>= f = Parser $ \input ->
     case p input of
-      Nothing -> Nothing
-      Just (x, input') -> parse (f x) input'
+      Left es           -> Left es
+      Right (x, input') -> parse (f x) input'
 
 instance MonadPlus Parser where
   mzero = empty
@@ -42,29 +48,28 @@ instance MonadFail Parser where
   fail _ = mzero
 
 
-char :: Char -> Parser Char
-char c = Parser $ \input ->
-  case input of
-    (x:xs) | x == c -> Just (x, xs)
-    _               -> Nothing
-
 symbol :: String -> Parser String
 symbol s = sequenceA $ map char s
 
-charIf :: (Char -> Bool) -> Parser Char
-charIf pred = Parser $ \input ->
+satisfy :: (Char -> Bool) -> Parser Char
+satisfy pred = Parser $ \input ->
   case input of
-    (x:xs) | pred x -> Just (x, xs)
-    _               -> Nothing
+    (x:xs)
+      | pred x    -> Right (x, xs)
+      | otherwise -> Left (Unexpected x)
+    []            -> Left EndOfInput
+
+char :: Char -> Parser Char
+char c = satisfy (== c)
 
 oneOf :: String -> Parser Char
-oneOf cs = charIf (`elem` cs)
+oneOf cs = satisfy (`elem` cs)
 
-charNotIn :: String -> Parser Char
-charNotIn cs = charIf (not . (`elem` cs))
+notOneOf :: String -> Parser Char
+notOneOf cs = satisfy (not . (`elem` cs))
 
 lineComment :: Parser ()
-lineComment = void $ symbol "//" *> many (charNotIn "\n")
+lineComment = void $ symbol "//" *> many (notOneOf "\n")
 
 sc :: Parser ()
 sc = void $ many (lineComment <|> (void $ oneOf " \t\n"))
@@ -98,28 +103,28 @@ alphaNumChar :: Parser Char
 alphaNumChar = letterChar <|> digit
 
 anyChar :: Parser Char
-anyChar = charIf (const True)
+anyChar = satisfy (const True)
 
 lookAhead :: Parser a -> Parser a
 lookAhead p = Parser $ \input ->
   case consume input of
-    Nothing -> Nothing
-    Just x  -> Just (x, input)
+    Nothing -> Left EndOfInput
+    Just x  -> Right (x, input)
   where
     consume [] = Nothing
     consume s =
       case parse p s of
-        Nothing -> consume $ tail s
-        Just (x, _) -> Just x
+        Left _       -> consume $ tail s
+        Right (x, _) -> Just x
 
 notFollowedBy :: Parser a -> Parser ()
 notFollowedBy p = Parser $ \input ->
   case consume input of
-    Nothing -> Just ((), input)
-    Just _  -> Nothing
+    Nothing -> Right ((), input)
+    Just x  -> Left Empty
   where
     consume [] = Nothing
     consume s =
       case parse p s of
-        Nothing     -> consume $ tail s
-        Just (x, _) -> Just x
+        Left _       -> consume $ tail s
+        Right (x, _) -> Just x
