@@ -1,10 +1,9 @@
 module Cuttlefish.Parser.Utils where
 
 import Cuttlefish.Parser.Ast
-import Data.Text (Text)
 import Data.Functor.Const
 
-bindHasVar :: Text -> Bind -> Bool
+bindHasVar :: String -> Bind -> Bool
 bindHasVar var = \case
   (SimpleBind var2)        -> var == var2
   (TupleBind binds)        -> any (bindHasVar var) binds
