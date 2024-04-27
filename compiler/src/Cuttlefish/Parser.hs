@@ -1,13 +1,13 @@
 module Cuttlefish.Parser
   ( programP
-  , runParser
-  , errorBundlePretty
   )
 where
 
-import Text.Megaparsec
+import Control.Applicative
+import Control.Applicative.Combinators
 import Cuttlefish.Parser.Body
-import Cuttlefish.Parser.Core
+import Cuttlefish.Parser.Core (Parser, eof)
+import Cuttlefish.Parser.Lexer
 import Cuttlefish.Parser.Types
 import Cuttlefish.Parser.Ast
 
@@ -18,11 +18,11 @@ data ProgramRoot = RTypeDefn   TypeDefn
                  | RMemberDefn MembershipDefn
 
 programRootsP :: Parser [ProgramRoot]
-programRootsP = many $ try (RTypeDefn   <$> typeDefnP)
-                   <|> try (RConstDefn  <$> constDefnP)
-                   <|> try (RFuncDefn   <$> (try funcDefnP <|> try funcDefnP' <|> effectDefnP))
-                   <|> try (RClassDefn  <$> classDefnP)
-                   <|> try (RMemberDefn <$> memberDefnP)
+programRootsP = many $ RTypeDefn   <$> typeDefnP
+                   <|> RConstDefn  <$> constDefnP
+                   <|> RFuncDefn   <$> (funcDefnP <|> funcDefnP' <|> effectDefnP)
+                   <|> RClassDefn  <$> classDefnP
+                   <|> RMemberDefn <$> memberDefnP
 
 typeDefns :: [ProgramRoot] -> [TypeDefn]
 typeDefns r = [td | RTypeDefn td <- r]
@@ -40,7 +40,7 @@ memberDefns :: [ProgramRoot] -> [MembershipDefn]
 memberDefns r = [m | RMemberDefn m <- r]
 
 programP :: Parser Program
-programP = between fsc eof $ do
+programP = between sc eof $ do
   roots <- programRootsP
   pure $ Program
     (typeDefns   roots)

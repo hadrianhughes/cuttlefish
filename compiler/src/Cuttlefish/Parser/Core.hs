@@ -48,6 +48,12 @@ instance MonadFail Parser where
   fail _ = mzero
 
 
+eof :: Parser ()
+eof = Parser $ \input ->
+  case input of
+    []    -> Right ((), [])
+    (x:_) -> Left (Unexpected x)
+
 symbol :: Parser () -> String -> Parser String
 symbol sc' s = sc' *> (sequenceA $ map char s)
 
