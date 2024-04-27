@@ -12,6 +12,12 @@ data ParseError = EndOfInput
 
 newtype Parser a = Parser { parse :: String -> Either ParseError (a, String) }
 
+runParser :: Parser a -> String -> Either ParseError a
+runParser p input =
+  case parse p $ input of
+    Left e       -> Left e
+    Right (x, _) -> Right x
+
 instance Functor Parser where
   fmap f (Parser p) = Parser $ \input ->
     case p input of

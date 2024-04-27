@@ -1,12 +1,13 @@
 module Cuttlefish.Parser
   ( programP
+  , runParser
   )
 where
 
 import Control.Applicative
 import Control.Applicative.Combinators
 import Cuttlefish.Parser.Body
-import Cuttlefish.Parser.Core (Parser, eof)
+import Cuttlefish.Parser.Core (Parser, eof, runParser)
 import Cuttlefish.Parser.Lexer
 import Cuttlefish.Parser.Types
 import Cuttlefish.Parser.Ast

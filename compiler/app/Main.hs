@@ -2,7 +2,6 @@ module Main where
 
 import           Cuttlefish
 import           Options.Applicative
-import qualified Data.Text.IO        as T
 import           Text.Pretty.Simple
 
 data Action = Ast | Sast
@@ -19,10 +18,10 @@ optionsP = Options
 
 runOpts :: Options -> IO ()
 runOpts (Options action infile) = do
-  program <- T.readFile infile
-  let parseTree = runParser programP infile program
+  program <- readFile infile
+  let parseTree = runParser programP program
   case parseTree of
-    Left  err -> putStrLn $ errorBundlePretty err
+    Left  err -> putStrLn $ show err
     Right ast ->
       case action of
         Ast -> pPrint ast
