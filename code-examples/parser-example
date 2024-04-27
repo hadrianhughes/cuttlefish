@@ -15,39 +15,31 @@ class Alternative f extends Applicative {
 type Parser = Parser({ parse: String -> Maybe<(T, String)> })
 
 member Parser of Functor {
-  func fmap(f, Parser p) = Parser(input => (
-    match p(input) {
-      case Just(x, xs) -> Just(f(x), xs),
-      case Nothing     -> Nothing
-    }
-  ))
+  func fmap(f, Parser p) = Parser(input => match p(input) {
+    case Just(x, xs) -> Just(f(x), xs),
+    case Nothing     -> Nothing
+  })
 }
 
 member Parser of Applicative {
   func pure(x) = Parser(input => Just(x, input)),
 
-  func <*>(Parser p1, Parser p2) = Parser(input => (
-    match p1(input) {
-      case Nothing         -> Nothing,
-      case Just(f, input') -> (
-        match p2(input') {
-          case Nothing          -> Nothing,
-          case Just(x, input'') -> Just(f(x), input'')
-        }
-      )
+  func <*>(Parser p1, Parser p2) = Parser(input => match p1(input) {
+    case Nothing         -> Nothing,
+    case Just(f, input') -> match p2(input') {
+      case Nothing          -> Nothing,
+      case Just(x, input'') -> Just(f(x), input'')
     }
-  ))
+  })
 }
 
 member Parser of Alternative {
   func empty() = Parser(_ => Nothing),
 
-  func <|>(Parser p1, Parser p2) = Parser(input => (
-    match p1(input) {
-      case Just res -> Just res,
-      Nothing       -> p2(input)
-    }
-  ))
+  func <|>(Parser p1, Parser p2) = Parser(input => match p1(input) {
+    case Just res -> Just res,
+    Nothing       -> p2(input)
+  })
 }
 
 func charP(c: char) -> Parser<Char> = Parser(input => {
